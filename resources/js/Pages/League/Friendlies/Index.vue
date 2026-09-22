@@ -1,11 +1,11 @@
 <script setup>
-import { ref, computed } from 'vue';
-import { router, useForm } from '@inertiajs/vue3';
+import { ref, reactive, computed } from 'vue';
+import { router, useForm, usePage } from '@inertiajs/vue3';
 import LeagueLayout from '@/Layouts/LeagueLayout.vue';
 import TeamCrest from '@/Components/League/TeamCrest.vue';
 import TeamWheel from '@/Components/League/TeamWheel.vue';
 import Modal from '@/Components/Modal.vue';
-import { PlusIcon, TrashIcon, HandRaisedIcon, SparklesIcon, MagnifyingGlassIcon, ChevronDownIcon, XMarkIcon } from '@heroicons/vue/24/outline';
+import { PlusIcon, TrashIcon, HandRaisedIcon, SparklesIcon, MagnifyingGlassIcon, ChevronDownIcon, XMarkIcon, CheckCircleIcon, PencilIcon } from '@heroicons/vue/24/outline';
 
 const props = defineProps({
     can: Object,
@@ -169,6 +169,31 @@ function destroy(match) {
     router.delete(`/league/friendlies/${match.id}`, { preserveScroll: true });
 }
 
+function canEditMatch(match) {
+    return props.can.manage || match.created_by === usePage().props.auth.user.id;
+}
+
+const editing = reactive({});
+
+function startEdit(match) {
+    editing[match.id] = {
+        home_score: match.home_score,
+        away_score: match.away_score,
+    };
+}
+
+function cancelEdit(matchId) {
+    delete editing[matchId];
+}
+
+function saveScore(match) {
+    const scores = editing[match.id];
+    router.put(`/league/friendlies/${match.id}/score`, scores, {
+        preserveScroll: true,
+        onSuccess: () => delete editing[match.id],
+    });
+}
+
 const formatDate = (value) =>
     value
         ? new Date(value).toLocaleDateString('ro-RO', { day: 'numeric', month: 'short', year: 'numeric' })
@@ -198,7 +223,24 @@ const formatDate = (value) =>
                 </div>
 
                 <div class="shrink-0 px-2 text-center">
-                    <p class="font-display text-lg font-bold text-white">{{ m.home_score }} - {{ m.away_score }}</p>
+                    <div v-if="editing[m.id]" class="flex items-center gap-1.5">
+                        <input v-model.number="editing[m.id].home_score" type="number" min="0" max="99" class="h-8 w-10 rounded-lg border border-white/10 bg-white/10 text-center text-sm text-white focus:border-emerald-400 focus:ring-emerald-400 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
+                        <span class="text-slate-500">-</span>
+                        <input v-model.number="editing[m.id].away_score" type="number" min="0" max="99" class="h-8 w-10 rounded-lg border border-white/10 bg-white/10 text-center text-sm text-white focus:border-emerald-400 focus:ring-emerald-400 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
+                        <button @click="saveScore(m)" class="ml-1 rounded-lg bg-emerald-500/20 p-1.5 text-emerald-400 hover:bg-emerald-500/30">
+                            <CheckCircleIcon class="h-4 w-4" />
+                        </button>
+                        <button @click="cancelEdit(m.id)" class="text-xs text-slate-500 hover:text-white">✕</button>
+                    </div>
+                    <button
+                        v-else-if="canEditMatch(m)"
+                        @click="startEdit(m)"
+                        class="group inline-flex items-center gap-1.5 rounded-lg px-2 py-0.5 font-display text-lg font-bold text-white transition hover:bg-white/10"
+                    >
+                        {{ m.home_score }} - {{ m.away_score }}
+                        <PencilIcon class="h-3 w-3 text-slate-500 opacity-0 transition group-hover:opacity-100" />
+                    </button>
+                    <p v-else class="font-display text-lg font-bold text-white">{{ m.home_score }} - {{ m.away_score }}</p>
                     <p class="text-[10px] text-slate-500">{{ formatDate(m.played_at) }}</p>
                 </div>
 

@@ -25,6 +25,7 @@ use App\Http\Controllers\League\Dashboard;
 use App\Http\Controllers\League\Friendlies\Destroy as FriendliesDestroy;
 use App\Http\Controllers\League\Friendlies\Index as FriendliesIndex;
 use App\Http\Controllers\League\Friendlies\Store as FriendliesStore;
+use App\Http\Controllers\League\Friendlies\UpdateScore as FriendliesUpdateScore;
 use App\Http\Controllers\League\Players\Show as PlayersShow;
 use App\Http\Controllers\League\Predictions\Store as PredictionsStore;
 use App\Http\Controllers\League\Settings\Show as SettingsShow;
@@ -64,6 +65,7 @@ Route::middleware(['auth'])
         Route::prefix('friendlies')->as('friendlies.')->group(function () {
             Route::get('', FriendliesIndex::class)->name('')->middleware('can:view league');
             Route::post('store', FriendliesStore::class)->name('store')->middleware('can:view league');
+            Route::put('{friendly}/score', FriendliesUpdateScore::class)->name('score')->middleware('can:view league');
             Route::delete('{friendly}', FriendliesDestroy::class)->name('destroy')->middleware('can:view league');
         });
 
