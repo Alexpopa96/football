@@ -33,7 +33,10 @@ class User extends Authenticatable
         'password',
         'status',
         'phone',
-        'obs'
+        'obs',
+        'pin',
+        'avatar_emoji',
+        'avatar_color',
     ];
 
     /**
@@ -43,6 +46,7 @@ class User extends Authenticatable
      */
     protected $hidden = [
         'password',
+        'pin',
         'remember_token',
         'two_factor_recovery_codes',
         'two_factor_secret',
@@ -67,6 +71,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'pin' => 'hashed',
         ];
     }
 
@@ -75,6 +80,11 @@ class User extends Authenticatable
         return $this->roles
             ->map->permissions
             ->flatten()->pluck('name')->unique();
+    }
+
+    public function verifyPin(string $pin): bool
+    {
+        return $this->pin && \Illuminate\Support\Facades\Hash::check($pin, $this->pin);
     }
 
     public function userRole()

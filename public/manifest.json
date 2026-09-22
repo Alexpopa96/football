@@ -1,0 +1,25 @@
+{
+    "name": "FIFA League",
+    "short_name": "FIFA League",
+    "description": "Clasamente și campionate FIFA între prieteni",
+    "start_url": "/league",
+    "scope": "/",
+    "display": "standalone",
+    "background_color": "#05070d",
+    "theme_color": "#05070d",
+    "orientation": "portrait-primary",
+    "icons": [
+        {
+            "src": "/icons/icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/icons/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ]
+}

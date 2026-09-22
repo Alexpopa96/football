@@ -26,6 +26,8 @@ class PermmisionSeeder extends Seeder
             ['name' => 'view permissions', 'group' => 'permissions', 'parent' => 'administration'],
             ['name' => 'create permission', 'group' => 'permissions', 'parent' => 'administration'],
             ['name' => 'edit permission', 'group' => 'permissions', 'parent' => 'administration'],
+            ['name' => 'view league', 'group' => 'league', 'parent' => ''],
+            ['name' => 'manage league', 'group' => 'league', 'parent' => ''],
         ])->each(function ($factory) {
             Permission::create($factory);
         });
@@ -34,7 +36,7 @@ class PermmisionSeeder extends Seeder
 
             if ($role->name === 'admin') {
                 $role->syncPermissions(Permission::whereIn('group', [
-                    'dashboard', 'administration', 'users', 'roles', 'permissions',
+                    'dashboard', 'administration', 'users', 'roles', 'permissions', 'league',
                 ])->pluck('id'));
             } elseif ($role->name === 'supervisor') {
                 $role->syncPermissions(Permission::whereIn('group', [
@@ -43,6 +45,10 @@ class PermmisionSeeder extends Seeder
             } elseif ($role->name === 'user') {
                 $role->syncPermissions(Permission::whereIn('name', [
                     'view dashboard'
+                ])->pluck('id'));
+            } elseif ($role->name === 'player') {
+                $role->syncPermissions(Permission::whereIn('name', [
+                    'view league',
                 ])->pluck('id'));
             }
         });

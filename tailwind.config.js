@@ -12,6 +12,7 @@ export default {
     theme: {
         fontFamily: {
             sans: ['Figtree', ...defaultTheme.fontFamily.sans],
+            display: ['Outfit', ...defaultTheme.fontFamily.sans],
         },
         extend: {
             colors: {
@@ -23,10 +24,17 @@ export default {
                 'tableDark' : '#1F263C',
                 'textTableDark' : '#f3f4f6',
                 'textInputDark' : '#f3f4f6',
-                'borderInputDark' : '#4b5563'
+                'borderInputDark' : '#4b5563',
+                'pitch': {
+                    950: '#05070d',
+                    900: '#0a0f1c',
+                    800: '#0f1729',
+                    700: '#161f38',
+                    600: '#1f2b4a',
+                },
             },
         }
     },
-    darkMode: 'false',
+    darkMode: 'class',
     plugins: [require('@tailwindcss/forms')],
 };

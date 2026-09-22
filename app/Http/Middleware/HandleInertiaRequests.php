@@ -49,6 +49,8 @@ class HandleInertiaRequests extends Middleware
                     'viewUsers' => Auth::user() ? Auth::user()->can('view users') : false,
                     'viewRoles' => Auth::user() ? Auth::user()->can('view roles') : false,
                     'viewPermissions' => Auth::user() ? Auth::user()->can('view permissions') : false,
+                    'viewLeague' => Auth::user() ? Auth::user()->can('view league') : false,
+                    'manageLeague' => Auth::user() ? Auth::user()->can('manage league') : false,
                 ],
             ],
             'toast' => function () {
@@ -58,7 +60,7 @@ class HandleInertiaRequests extends Middleware
                 ];
             },
             'impersonate' => Session::get('impersonate'),
-            'role_id' => Auth::user() ? Auth::user()->roles()->first()->id : null
+            'role_id' => Auth::user() ? optional(Auth::user()->roles()->first())->id : null
         ];
     }
 }

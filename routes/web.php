@@ -2,12 +2,13 @@
 
 use App\Http\Controllers\Impersonate;
 use Illuminate\Foundation\Application;
+use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::get('/', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['web', 'auth', 'can:view dashboard']);
+    return Redirect::to('/league');
+})->middleware(['web', 'auth']);
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
 })->middleware(['web', 'auth', 'can:view dashboard'])->name('dashboard');
@@ -28,3 +29,4 @@ Route::post('/exitimpersonate', [Impersonate::class, 'exitImpersonate'])->middle
 require __DIR__.'/app/permissions.php';
 require __DIR__.'/app/users.php';
 require __DIR__.'/app/roles.php';
+require __DIR__.'/app/league.php';
