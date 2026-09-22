@@ -1,23 +1,33 @@
 <script setup>
 import { ref, computed } from 'vue';
+import { Link } from '@inertiajs/vue3';
 import LeagueLayout from '@/Layouts/LeagueLayout.vue';
 import TeamCrest from '@/Components/League/TeamCrest.vue';
-import { TrophyIcon, FireIcon } from '@heroicons/vue/24/outline';
+import { TrophyIcon, FireIcon, ShieldCheckIcon, SparklesIcon, FaceFrownIcon } from '@heroicons/vue/24/outline';
 
 const props = defineProps({
     can: Object,
     players: Array,
     matches: Array,
+    teamStats: {
+        type: Object,
+        default: () => ({ players: [], cursed_teams: [], lucky_teams: [] }),
+    },
 });
 
 const metrics = [
+    { key: 'rating', label: 'Rating' },
     { key: 'won', label: 'Victorii' },
     { key: 'played', label: 'Meciuri' },
     { key: 'goals_for', label: 'Goluri' },
     { key: 'championships_won', label: 'Campionate' },
+    { key: 'cups_won', label: 'Cupe' },
+    { key: 'hattricks', label: 'Hattrick-uri' },
+    { key: 'best_win_margin', label: 'Victorie mare' },
+    { key: 'longest_win_streak', label: 'Serie victorii' },
 ];
 
-const activeMetric = ref('won');
+const activeMetric = ref('rating');
 
 const rankedPlayers = computed(() => {
     return [...props.players]
@@ -100,11 +110,16 @@ const formatDate = (value) =>
                 </button>
             </div>
 
+            <p v-if="activeMetric === 'rating'" class="mb-4 text-xs text-slate-500">
+                Scor Elo: urcă sau coboară după fiecare meci, în funcție de rezultat și de puterea adversarului. Arată cine joacă bine acum, separat de trofeele câștigate.
+            </p>
+
             <div class="space-y-2">
-                <div
+                <Link
                     v-for="row in rankedPlayers"
                     :key="row.user_id"
-                    class="flex items-center gap-3 rounded-2xl px-3 py-2.5"
+                    :href="route('league.players.show', row.user_id)"
+                    class="flex items-center gap-3 rounded-2xl px-3 py-2.5 transition hover:bg-white/[0.06]"
                     :class="row.position === 1 ? 'bg-gradient-to-r from-amber-400/10 to-transparent ring-1 ring-amber-400/20' : 'bg-white/[0.03]'"
                 >
                     <span class="w-4 text-center font-display font-bold" :class="row.position === 1 ? 'text-amber-400' : 'text-slate-400'">{{ row.position }}</span>
@@ -121,9 +136,99 @@ const formatDate = (value) =>
                         </p>
                     </div>
                     <span class="font-display text-lg font-extrabold text-white">{{ row[activeMetric] }}</span>
-                </div>
+                </Link>
 
                 <p v-if="rankedPlayers.length === 0" class="py-6 text-center text-sm text-slate-400">Nicio statistică încă.</p>
+            </div>
+        </div>
+
+        <!-- Best team per player -->
+        <div class="mb-8 rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur-xl">
+            <div class="mb-4 flex items-center gap-2">
+                <ShieldCheckIcon class="h-5 w-5 text-emerald-400" />
+                <h2 class="font-display text-lg font-bold text-white">Echipa preferată a fiecărui jucător</h2>
+            </div>
+            <p class="mb-4 text-xs text-slate-500">
+                Echipa cu cel mai mare procent de victorii pentru fiecare jucător (minim 2 meciuri jucați cu ea).
+            </p>
+
+            <div class="grid gap-3 sm:grid-cols-2">
+                <div
+                    v-for="row in teamStats.players"
+                    :key="row.user_id"
+                    class="flex items-center gap-3 rounded-2xl bg-white/[0.03] px-3 py-3"
+                >
+                    <div
+                        class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-lg"
+                        :style="{ backgroundColor: (row.avatar_color || '#334155') + '33', border: `1px solid ${row.avatar_color || '#334155'}` }"
+                    >
+                        {{ row.avatar_emoji || '🎮' }}
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <p class="truncate text-sm font-semibold text-white">{{ row.name }}</p>
+                        <div v-if="row.best_team" class="mt-1 flex items-center gap-2">
+                            <TeamCrest :team="row.best_team" size="h-5 w-5" />
+                            <span class="truncate text-xs font-medium text-emerald-300">{{ row.best_team.short_name }}</span>
+                            <span class="shrink-0 text-[11px] text-slate-500">{{ row.best_team.win_rate }}% &middot; {{ row.best_team.won }}V/{{ row.best_team.played }}J</span>
+                        </div>
+                        <p v-else class="mt-1 text-[11px] text-slate-500">Nu are încă destule meciuri cu o singură echipă.</p>
+                    </div>
+                </div>
+
+                <p v-if="teamStats.players.length === 0" class="col-span-2 py-6 text-center text-sm text-slate-400">Nicio statistică încă.</p>
+            </div>
+        </div>
+
+        <!-- Cursed / lucky teams -->
+        <div class="mb-8 grid gap-6 lg:grid-cols-2">
+            <div class="rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur-xl">
+                <div class="mb-4 flex items-center gap-2">
+                    <SparklesIcon class="h-5 w-5 text-amber-300" />
+                    <h2 class="font-display text-lg font-bold text-white">Echipe norocoase</h2>
+                </div>
+
+                <div class="space-y-2">
+                    <div
+                        v-for="(team, index) in teamStats.lucky_teams"
+                        :key="team.team_id"
+                        class="flex items-center gap-3 rounded-2xl bg-white/[0.03] px-3 py-2.5"
+                    >
+                        <span class="w-4 text-center font-display text-sm font-bold text-slate-400">{{ index + 1 }}</span>
+                        <TeamCrest :team="team" size="h-8 w-8" />
+                        <div class="min-w-0 flex-1">
+                            <p class="truncate text-sm font-semibold text-white">{{ team.name }}</p>
+                            <p class="truncate text-[11px] text-slate-500">{{ team.played }}J &middot; {{ team.won }}V {{ team.drawn }}E {{ team.lost }}Î</p>
+                        </div>
+                        <span class="font-display text-lg font-extrabold text-emerald-400">{{ team.win_rate }}%</span>
+                    </div>
+
+                    <p v-if="teamStats.lucky_teams.length === 0" class="py-6 text-center text-sm text-slate-400">Nu sunt destule date încă.</p>
+                </div>
+            </div>
+
+            <div class="rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur-xl">
+                <div class="mb-4 flex items-center gap-2">
+                    <FaceFrownIcon class="h-5 w-5 text-rose-400" />
+                    <h2 class="font-display text-lg font-bold text-white">Echipe blestemate</h2>
+                </div>
+
+                <div class="space-y-2">
+                    <div
+                        v-for="(team, index) in teamStats.cursed_teams"
+                        :key="team.team_id"
+                        class="flex items-center gap-3 rounded-2xl bg-white/[0.03] px-3 py-2.5"
+                    >
+                        <span class="w-4 text-center font-display text-sm font-bold text-slate-400">{{ index + 1 }}</span>
+                        <TeamCrest :team="team" size="h-8 w-8" />
+                        <div class="min-w-0 flex-1">
+                            <p class="truncate text-sm font-semibold text-white">{{ team.name }}</p>
+                            <p class="truncate text-[11px] text-slate-500">{{ team.played }}J &middot; {{ team.won }}V {{ team.drawn }}E {{ team.lost }}Î</p>
+                        </div>
+                        <span class="font-display text-lg font-extrabold text-rose-400">{{ team.win_rate }}%</span>
+                    </div>
+
+                    <p v-if="teamStats.cursed_teams.length === 0" class="py-6 text-center text-sm text-slate-400">Nu sunt destule date încă.</p>
+                </div>
             </div>
         </div>
 

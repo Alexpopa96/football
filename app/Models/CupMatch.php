@@ -4,18 +4,22 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class ChampionshipMatch extends Model
+class CupMatch extends Model
 {
     protected $fillable = [
-        'championship_id',
+        'cup_id',
         'round',
-        'leg',
+        'slot',
         'home_entry_id',
         'away_entry_id',
         'home_score',
         'away_score',
+        'home_penalties',
+        'away_penalties',
+        'winner_entry_id',
+        'feeds_into_match_id',
+        'feeds_into_side',
         'played_at',
     ];
 
@@ -26,24 +30,29 @@ class ChampionshipMatch extends Model
         ];
     }
 
-    public function championship(): BelongsTo
+    public function cup(): BelongsTo
     {
-        return $this->belongsTo(Championship::class);
+        return $this->belongsTo(Cup::class);
     }
 
     public function homeEntry(): BelongsTo
     {
-        return $this->belongsTo(ChampionshipEntry::class, 'home_entry_id');
+        return $this->belongsTo(CupEntry::class, 'home_entry_id');
     }
 
     public function awayEntry(): BelongsTo
     {
-        return $this->belongsTo(ChampionshipEntry::class, 'away_entry_id');
+        return $this->belongsTo(CupEntry::class, 'away_entry_id');
     }
 
-    public function predictions(): HasMany
+    public function winnerEntry(): BelongsTo
     {
-        return $this->hasMany(MatchPrediction::class, 'championship_match_id');
+        return $this->belongsTo(CupEntry::class, 'winner_entry_id');
+    }
+
+    public function feedsInto(): BelongsTo
+    {
+        return $this->belongsTo(CupMatch::class, 'feeds_into_match_id');
     }
 
     public function isPlayed(): bool

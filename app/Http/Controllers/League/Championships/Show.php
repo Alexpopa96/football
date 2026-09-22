@@ -12,7 +12,17 @@ class Show extends Controller
 {
     public function __invoke(Championship $championship, StandingsCalculator $calculator)
     {
-        $championship->load(['entries.user', 'entries.team', 'matches.homeEntry.user', 'matches.homeEntry.team', 'matches.awayEntry.user', 'matches.awayEntry.team']);
+        $championship->load([
+            'entries.user',
+            'entries.team',
+            'matches.homeEntry.user',
+            'matches.homeEntry.team',
+            'matches.awayEntry.user',
+            'matches.awayEntry.team',
+            'matches.predictions.user',
+        ]);
+
+        $userId = Auth::id();
 
         $matchesByRound = $championship->matches
             ->sortBy('round')
@@ -20,7 +30,11 @@ class Show extends Controller
             ->map(fn ($matches) => [
                 'round' => $matches->first()->round,
                 'leg' => $matches->first()->leg,
-                'matches' => $matches->values(),
+                'matches' => $matches->map(fn ($match) => [
+                    ...$match->toArray(),
+                    'my_prediction' => $match->predictions->firstWhere('user_id', $userId),
+                    'predictions' => $match->isPlayed() ? $match->predictions : [],
+                ])->values(),
             ])
             ->values();
 

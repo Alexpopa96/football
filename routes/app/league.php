@@ -11,7 +11,22 @@ use App\Http\Controllers\League\Championships\SetWheelPool;
 use App\Http\Controllers\League\Championships\Show as ChampionshipsShow;
 use App\Http\Controllers\League\Championships\SpinWheel;
 use App\Http\Controllers\League\Championships\Store as ChampionshipsStore;
+use App\Http\Controllers\League\Cups\AssignTeam as CupsAssignTeam;
+use App\Http\Controllers\League\Cups\Create as CupsCreate;
+use App\Http\Controllers\League\Cups\GenerateFixtures as CupsGenerateFixtures;
+use App\Http\Controllers\League\Cups\Index as CupsIndex;
+use App\Http\Controllers\League\Cups\RecordScore as CupsRecordScore;
+use App\Http\Controllers\League\Cups\SelectTeams as CupsSelectTeams;
+use App\Http\Controllers\League\Cups\SetWheelPool as CupsSetWheelPool;
+use App\Http\Controllers\League\Cups\Show as CupsShow;
+use App\Http\Controllers\League\Cups\SpinWheel as CupsSpinWheel;
+use App\Http\Controllers\League\Cups\Store as CupsStore;
 use App\Http\Controllers\League\Dashboard;
+use App\Http\Controllers\League\Friendlies\Destroy as FriendliesDestroy;
+use App\Http\Controllers\League\Friendlies\Index as FriendliesIndex;
+use App\Http\Controllers\League\Friendlies\Store as FriendliesStore;
+use App\Http\Controllers\League\Players\Show as PlayersShow;
+use App\Http\Controllers\League\Predictions\Store as PredictionsStore;
 use App\Http\Controllers\League\Settings\Show as SettingsShow;
 use App\Http\Controllers\League\Settings\UpdatePin as SettingsUpdatePin;
 use App\Http\Controllers\League\Stats\Index as StatsIndex;
@@ -44,6 +59,14 @@ Route::middleware(['auth'])
             Route::get('', StatsIndex::class)->name('')->middleware('can:view league');
         });
 
+        Route::get('players/{player}', PlayersShow::class)->name('players.show')->middleware('can:view league');
+
+        Route::prefix('friendlies')->as('friendlies.')->group(function () {
+            Route::get('', FriendliesIndex::class)->name('')->middleware('can:view league');
+            Route::post('store', FriendliesStore::class)->name('store')->middleware('can:view league');
+            Route::delete('{friendly}', FriendliesDestroy::class)->name('destroy')->middleware('can:view league');
+        });
+
         Route::prefix('championships')->as('championships.')->group(function () {
             Route::get('', ChampionshipsIndex::class)->name('')->middleware('can:view league');
             Route::get('create', ChampionshipsCreate::class)->name('create')->middleware('can:manage league');
@@ -55,5 +78,19 @@ Route::middleware(['auth'])
             Route::post('{championship}/entries/{entry}/spin', SpinWheel::class)->name('spin')->middleware('can:manage league');
             Route::post('{championship}/generate', GenerateFixtures::class)->name('generate')->middleware('can:manage league');
             Route::put('{championship}/matches/{match}/score', RecordScore::class)->name('score')->middleware('can:manage league');
+            Route::post('{championship}/matches/{match}/predict', PredictionsStore::class)->name('predict')->middleware('can:view league');
+        });
+
+        Route::prefix('cups')->as('cups.')->group(function () {
+            Route::get('', CupsIndex::class)->name('')->middleware('can:view league');
+            Route::get('create', CupsCreate::class)->name('create')->middleware('can:manage league');
+            Route::post('store', CupsStore::class)->name('store')->middleware('can:manage league');
+            Route::get('{cup}', CupsShow::class)->name('show')->middleware('can:view league');
+            Route::get('{cup}/select-teams', CupsSelectTeams::class)->name('select-teams')->middleware('can:manage league');
+            Route::put('{cup}/wheel-pool', CupsSetWheelPool::class)->name('wheel-pool')->middleware('can:manage league');
+            Route::put('{cup}/entries/{entry}/assign', CupsAssignTeam::class)->name('assign')->middleware('can:manage league');
+            Route::post('{cup}/entries/{entry}/spin', CupsSpinWheel::class)->name('spin')->middleware('can:manage league');
+            Route::post('{cup}/generate', CupsGenerateFixtures::class)->name('generate')->middleware('can:manage league');
+            Route::put('{cup}/matches/{match}/score', CupsRecordScore::class)->name('score')->middleware('can:manage league');
         });
     });

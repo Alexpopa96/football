@@ -4,15 +4,19 @@ import { Head, Link, usePage, router } from '@inertiajs/vue3';
 import {
     HomeIcon,
     TrophyIcon,
+    GiftIcon,
     ShieldCheckIcon,
     ChartBarIcon,
+    HandRaisedIcon,
     ArrowRightStartOnRectangleIcon,
 } from '@heroicons/vue/24/outline';
 import {
     HomeIcon as HomeIconSolid,
     TrophyIcon as TrophyIconSolid,
+    GiftIcon as GiftIconSolid,
     ShieldCheckIcon as ShieldCheckIconSolid,
     ChartBarIcon as ChartBarIconSolid,
+    HandRaisedIcon as HandRaisedIconSolid,
 } from '@heroicons/vue/24/solid';
 
 defineProps({
@@ -30,6 +34,8 @@ const nav = computed(() => {
     const items = [
         { label: 'Acasă', href: '/league', match: '/league', icon: HomeIcon, iconActive: HomeIconSolid, exact: true },
         { label: 'Clasamente', href: '/league/championships', match: '/league/championships', icon: TrophyIcon, iconActive: TrophyIconSolid },
+        { label: 'Cupă', href: '/league/cups', match: '/league/cups', icon: GiftIcon, iconActive: GiftIconSolid },
+        { label: 'Amicale', href: '/league/friendlies', match: '/league/friendlies', icon: HandRaisedIcon, iconActive: HandRaisedIconSolid },
         { label: 'Statistici', href: '/league/stats', match: '/league/stats', icon: ChartBarIcon, iconActive: ChartBarIconSolid },
     ];
 

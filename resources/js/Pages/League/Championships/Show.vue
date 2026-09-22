@@ -3,7 +3,7 @@ import { reactive } from 'vue';
 import { router } from '@inertiajs/vue3';
 import LeagueLayout from '@/Layouts/LeagueLayout.vue';
 import TeamCrest from '@/Components/League/TeamCrest.vue';
-import { CheckCircleIcon, PencilIcon } from '@heroicons/vue/24/outline';
+import { CheckCircleIcon, PencilIcon, HandRaisedIcon } from '@heroicons/vue/24/outline';
 
 const props = defineProps({
     can: Object,
@@ -32,6 +32,33 @@ function saveScore(match) {
         onSuccess: () => delete editing[match.id],
     });
 }
+
+const predicting = reactive({});
+
+function startPredict(match) {
+    predicting[match.id] = {
+        predicted_home_score: match.my_prediction?.predicted_home_score ?? 0,
+        predicted_away_score: match.my_prediction?.predicted_away_score ?? 0,
+    };
+}
+
+function cancelPredict(matchId) {
+    delete predicting[matchId];
+}
+
+function savePredict(match) {
+    const scores = predicting[match.id];
+    router.post(`/league/championships/${props.championship.id}/matches/${match.id}/predict`, scores, {
+        preserveScroll: true,
+        onSuccess: () => delete predicting[match.id],
+    });
+}
+
+const pointsClass = (points) => {
+    if (points === 3) return 'bg-emerald-500/20 text-emerald-400';
+    if (points === 1) return 'bg-amber-500/20 text-amber-400';
+    return 'bg-white/10 text-slate-400';
+};
 
 const legLabel = (leg) => (leg === 'tur' ? 'Tur' : 'Retur');
 </script>
@@ -126,39 +153,85 @@ const legLabel = (leg) => (leg === 'tur' ? 'Tur' : 'Retur');
                 <div v-for="round in rounds" :key="round.round" class="rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur-xl">
                     <p class="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500">{{ legLabel(round.leg) }} &middot; Runda {{ round.round }}</p>
                     <div class="space-y-2">
-                        <div v-for="match in round.matches" :key="match.id" class="flex items-center justify-between gap-3 rounded-2xl bg-white/[0.03] px-3 py-2.5">
-                            <div class="flex min-w-0 flex-1 items-center justify-end gap-2">
-                                <span class="truncate text-sm font-medium text-white">{{ match.home_entry.team.short_name }}</span>
-                                <TeamCrest :team="match.home_entry.team" size="h-7 w-7" />
-                            </div>
-
-                            <div class="shrink-0">
-                                <div v-if="editing[match.id]" class="flex items-center gap-1.5">
-                                    <input v-model.number="editing[match.id].home_score" type="number" min="0" max="99" class="h-8 w-10 rounded-lg border border-white/10 bg-white/10 text-center text-sm text-white focus:border-emerald-400 focus:ring-emerald-400 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
-                                    <span class="text-slate-500">-</span>
-                                    <input v-model.number="editing[match.id].away_score" type="number" min="0" max="99" class="h-8 w-10 rounded-lg border border-white/10 bg-white/10 text-center text-sm text-white focus:border-emerald-400 focus:ring-emerald-400 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
-                                    <button @click="saveScore(match)" class="ml-1 rounded-lg bg-emerald-500/20 p-1.5 text-emerald-400 hover:bg-emerald-500/30">
-                                        <CheckCircleIcon class="h-4 w-4" />
-                                    </button>
-                                    <button @click="cancelEdit(match.id)" class="text-xs text-slate-500 hover:text-white">✕</button>
+                        <div v-for="match in round.matches" :key="match.id" class="rounded-2xl bg-white/[0.03] px-3 py-2.5">
+                            <div class="flex items-center justify-between gap-3">
+                                <div class="flex min-w-0 flex-1 items-center justify-end gap-2">
+                                    <span class="truncate text-sm font-medium text-white">{{ match.home_entry.team.short_name }}</span>
+                                    <TeamCrest :team="match.home_entry.team" size="h-7 w-7" />
                                 </div>
-                                <button
-                                    v-else-if="can.manage"
-                                    @click="startEdit(match)"
-                                    class="flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-sm font-display font-bold transition"
-                                    :class="match.home_score !== null ? 'bg-white/10 text-white' : 'bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white'"
-                                >
-                                    <template v-if="match.home_score !== null">{{ match.home_score }} - {{ match.away_score }}</template>
-                                    <template v-else><PencilIcon class="h-3.5 w-3.5" /> scor</template>
-                                </button>
-                                <span v-else class="px-2.5 py-1 text-sm font-display font-bold text-white">
-                                    {{ match.home_score !== null ? `${match.home_score} - ${match.away_score}` : 'vs' }}
-                                </span>
+
+                                <div class="shrink-0">
+                                    <div v-if="editing[match.id]" class="flex items-center gap-1.5">
+                                        <input v-model.number="editing[match.id].home_score" type="number" min="0" max="99" class="h-8 w-10 rounded-lg border border-white/10 bg-white/10 text-center text-sm text-white focus:border-emerald-400 focus:ring-emerald-400 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
+                                        <span class="text-slate-500">-</span>
+                                        <input v-model.number="editing[match.id].away_score" type="number" min="0" max="99" class="h-8 w-10 rounded-lg border border-white/10 bg-white/10 text-center text-sm text-white focus:border-emerald-400 focus:ring-emerald-400 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
+                                        <button @click="saveScore(match)" class="ml-1 rounded-lg bg-emerald-500/20 p-1.5 text-emerald-400 hover:bg-emerald-500/30">
+                                            <CheckCircleIcon class="h-4 w-4" />
+                                        </button>
+                                        <button @click="cancelEdit(match.id)" class="text-xs text-slate-500 hover:text-white">✕</button>
+                                    </div>
+                                    <button
+                                        v-else-if="can.manage"
+                                        @click="startEdit(match)"
+                                        class="flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-sm font-display font-bold transition"
+                                        :class="match.home_score !== null ? 'bg-white/10 text-white' : 'bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white'"
+                                    >
+                                        <template v-if="match.home_score !== null">{{ match.home_score }} - {{ match.away_score }}</template>
+                                        <template v-else><PencilIcon class="h-3.5 w-3.5" /> scor</template>
+                                    </button>
+                                    <span v-else class="px-2.5 py-1 text-sm font-display font-bold text-white">
+                                        {{ match.home_score !== null ? `${match.home_score} - ${match.away_score}` : 'vs' }}
+                                    </span>
+                                </div>
+
+                                <div class="flex min-w-0 flex-1 items-center gap-2">
+                                    <TeamCrest :team="match.away_entry.team" size="h-7 w-7" />
+                                    <span class="truncate text-sm font-medium text-white">{{ match.away_entry.team.short_name }}</span>
+                                </div>
                             </div>
 
-                            <div class="flex min-w-0 flex-1 items-center gap-2">
-                                <TeamCrest :team="match.away_entry.team" size="h-7 w-7" />
-                                <span class="truncate text-sm font-medium text-white">{{ match.away_entry.team.short_name }}</span>
+                            <!-- Predictions -->
+                            <div class="mt-2 border-t border-white/5 pt-2">
+                                <div v-if="match.home_score === null" class="flex items-center justify-center gap-2">
+                                    <div v-if="predicting[match.id]" class="flex items-center gap-1.5">
+                                        <input v-model.number="predicting[match.id].predicted_home_score" type="number" min="0" max="99" class="h-7 w-9 rounded-lg border border-white/10 bg-white/10 text-center text-xs text-white focus:border-violet-400 focus:ring-violet-400 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
+                                        <span class="text-slate-500">-</span>
+                                        <input v-model.number="predicting[match.id].predicted_away_score" type="number" min="0" max="99" class="h-7 w-9 rounded-lg border border-white/10 bg-white/10 text-center text-xs text-white focus:border-violet-400 focus:ring-violet-400 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
+                                        <button @click="savePredict(match)" class="ml-1 rounded-lg bg-violet-500/20 p-1 text-violet-300 hover:bg-violet-500/30">
+                                            <CheckCircleIcon class="h-3.5 w-3.5" />
+                                        </button>
+                                        <button @click="cancelPredict(match.id)" class="text-xs text-slate-500 hover:text-white">✕</button>
+                                    </div>
+                                    <button
+                                        v-else
+                                        @click="startPredict(match)"
+                                        class="flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium transition"
+                                        :class="match.my_prediction ? 'bg-violet-500/10 text-violet-300' : 'bg-white/5 text-slate-500 hover:bg-white/10 hover:text-white'"
+                                    >
+                                        <HandRaisedIcon class="h-3 w-3" />
+                                        <template v-if="match.my_prediction">Tu: {{ match.my_prediction.predicted_home_score }} - {{ match.my_prediction.predicted_away_score }}</template>
+                                        <template v-else>Pontează</template>
+                                    </button>
+                                </div>
+
+                                <div v-else class="flex flex-wrap items-center justify-center gap-1.5">
+                                    <span
+                                        v-if="match.my_prediction"
+                                        class="rounded-full px-2 py-0.5 text-[11px] font-medium"
+                                        :class="pointsClass(match.my_prediction.points_awarded)"
+                                    >
+                                        Tu: {{ match.my_prediction.predicted_home_score }}-{{ match.my_prediction.predicted_away_score }} &middot; +{{ match.my_prediction.points_awarded }}p
+                                    </span>
+                                    <span
+                                        v-for="prediction in match.predictions.filter((p) => p.user_id !== match.my_prediction?.user_id)"
+                                        :key="prediction.id"
+                                        class="rounded-full px-2 py-0.5 text-[11px] font-medium"
+                                        :class="pointsClass(prediction.points_awarded)"
+                                    >
+                                        {{ prediction.user?.name }}: {{ prediction.predicted_home_score }}-{{ prediction.predicted_away_score }} &middot; +{{ prediction.points_awarded }}p
+                                    </span>
+                                    <span v-if="!match.predictions.length" class="text-[11px] text-slate-600">Nimeni nu a pontat</span>
+                                </div>
                             </div>
                         </div>
                     </div>
