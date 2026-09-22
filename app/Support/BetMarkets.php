@@ -10,7 +10,10 @@ class BetMarkets
 
     public const CORRECT_SCORE_MAX_GOALS = 6;
 
-    public const ODDS = 2.0;
+    public const ODDS_BY_MARKET = [
+        self::MATCH_RESULT => 2.0,
+        self::CORRECT_SCORE => 10.0,
+    ];
 
     public static function selections(): array
     {
@@ -42,7 +45,7 @@ class BetMarkets
 
     public static function oddsFor(string $market, string $selection): ?float
     {
-        return self::isValidSelection($market, $selection) ? self::ODDS : null;
+        return self::isValidSelection($market, $selection) ? self::ODDS_BY_MARKET[$market] : null;
     }
 
     public static function wins(string $market, string $selection, int $homeScore, int $awayScore): bool

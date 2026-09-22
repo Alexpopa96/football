@@ -10,25 +10,26 @@ const props = defineProps({
 });
 
 const CORRECT_SCORE_MAX_GOALS = 6;
-const FIXED_ODDS = 2.0;
+const MATCH_RESULT_ODDS = 2.0;
+const CORRECT_SCORE_ODDS = 10.0;
 
 const correctScoreOptions = [];
 for (let home = 0; home <= CORRECT_SCORE_MAX_GOALS; home++) {
     for (let away = 0; away <= CORRECT_SCORE_MAX_GOALS; away++) {
         const value = `${home}-${away}`;
-        correctScoreOptions.push({ value, label: value, odds: FIXED_ODDS });
+        correctScoreOptions.push({ value, label: value, odds: CORRECT_SCORE_ODDS });
     }
 }
-correctScoreOptions.push({ value: 'other', label: 'Altul', odds: FIXED_ODDS });
+correctScoreOptions.push({ value: 'other', label: 'Altul', odds: CORRECT_SCORE_ODDS });
 
 const MARKETS = [
     {
         key: 'match_result',
         label: '1X2',
         options: [
-            { value: 'home', label: 'Gazdă', odds: FIXED_ODDS },
-            { value: 'draw', label: 'Egal', odds: FIXED_ODDS },
-            { value: 'away', label: 'Oaspete', odds: FIXED_ODDS },
+            { value: 'home', label: 'Gazdă', odds: MATCH_RESULT_ODDS },
+            { value: 'draw', label: 'Egal', odds: MATCH_RESULT_ODDS },
+            { value: 'away', label: 'Oaspete', odds: MATCH_RESULT_ODDS },
         ],
     },
     {
@@ -158,7 +159,7 @@ const pointsClass = (points) => (points > 0 ? 'bg-emerald-500/20 text-emerald-40
                     <span class="rounded-full bg-white/5 px-2.5 py-1 text-xs font-semibold text-white">Sold: {{ availableForStake }}p</span>
                 </div>
                 <p class="mb-4 text-xs text-slate-400">
-                    Un singur pariu activ pe acest meci, cotă fixă {{ FIXED_ODDS.toFixed(2) }}x. Dacă pierzi, îți pierzi miza.
+                    Un singur pariu activ pe acest meci &middot; 1X2 {{ MATCH_RESULT_ODDS.toFixed(2) }}x, scor exact {{ CORRECT_SCORE_ODDS.toFixed(2) }}x. Dacă pierzi, îți pierzi miza.
                 </p>
 
                 <div class="max-h-[45vh] space-y-4 overflow-y-auto pr-1">
