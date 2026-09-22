@@ -145,6 +145,10 @@ class PlayerStatsCalculator
         }
 
         foreach (FriendlyMatch::all() as $friendly) {
+            if (! $friendly->isPlayed()) {
+                continue;
+            }
+
             $this->applyResult($stats, $friendly->home_user_id, $friendly->away_user_id, $friendly->home_score, $friendly->away_score);
 
             $chronologicalResults[] = [

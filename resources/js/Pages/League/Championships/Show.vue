@@ -89,19 +89,27 @@ const legLabel = (leg) => (leg === 'tur' ? 'Tur' : 'Retur');
                     <div
                         v-for="row in standings"
                         :key="row.entry_id"
-                        class="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-3 py-2.5 backdrop-blur-xl"
+                        class="rounded-2xl border border-white/10 bg-white/5 px-3 py-2.5 backdrop-blur-xl"
                         :class="row.position === 1 ? 'bg-gradient-to-r from-amber-400/10 to-transparent ring-1 ring-amber-400/20' : ''"
                     >
-                        <span class="w-4 text-center font-display font-bold" :class="row.position === 1 ? 'text-amber-400' : 'text-slate-400'">{{ row.position }}</span>
-                        <TeamCrest :team="row.team" size="h-8 w-8" />
-                        <div class="min-w-0 flex-1">
-                            <p class="truncate text-sm font-semibold text-white">{{ row.team?.short_name }}</p>
-                            <p class="truncate text-[11px] text-slate-500">{{ row.user?.name }} &middot; {{ row.played }}J</p>
+                        <div class="flex items-center gap-3">
+                            <span class="w-4 text-center font-display font-bold" :class="row.position === 1 ? 'text-amber-400' : 'text-slate-400'">{{ row.position }}</span>
+                            <TeamCrest :team="row.team" size="h-8 w-8" />
+                            <div class="min-w-0 flex-1">
+                                <p class="truncate text-sm font-semibold text-white">{{ row.team?.short_name }}</p>
+                                <p class="truncate text-[11px] text-slate-500">{{ row.user?.name }}</p>
+                            </div>
+                            <span class="text-xs font-medium" :class="row.goal_difference > 0 ? 'text-emerald-400' : row.goal_difference < 0 ? 'text-rose-400' : 'text-slate-400'">
+                                {{ row.goal_difference > 0 ? '+' : '' }}{{ row.goal_difference }}
+                            </span>
+                            <span class="font-display text-lg font-extrabold text-white">{{ row.points }}</span>
                         </div>
-                        <span class="text-xs font-medium" :class="row.goal_difference > 0 ? 'text-emerald-400' : row.goal_difference < 0 ? 'text-rose-400' : 'text-slate-400'">
-                            {{ row.goal_difference > 0 ? '+' : '' }}{{ row.goal_difference }}
-                        </span>
-                        <span class="font-display text-lg font-extrabold text-white">{{ row.points }}</span>
+                        <div class="mt-2 flex items-center gap-3 pl-7 text-[11px] text-slate-400">
+                            <span>{{ row.played }}J</span>
+                            <span class="text-emerald-400">{{ row.won }}V</span>
+                            <span class="text-slate-300">{{ row.drawn }}E</span>
+                            <span class="text-rose-400">{{ row.lost }}Î</span>
+                        </div>
                     </div>
                 </div>
 
