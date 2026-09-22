@@ -44,7 +44,7 @@ class PlayerStatsCalculator
      */
     public function leaderboard(): array
     {
-        $players = User::whereNotNull('pin')->orderBy('id')->get(['id', 'name', 'avatar_emoji', 'avatar_color', 'status', 'bet_balance', 'rating']);
+        $players = User::whereNotNull('pin')->orderBy('id')->get(['id', 'name', 'avatar_emoji', 'avatar_color', 'status', 'bet_balance', 'bankruptcies_count', 'rating']);
 
         $stats = [];
         foreach ($players as $player) {
@@ -54,6 +54,7 @@ class PlayerStatsCalculator
                 'avatar_emoji' => $player->avatar_emoji,
                 'avatar_color' => $player->avatar_color,
                 'bet_balance' => $player->bet_balance,
+                'bankruptcies_count' => $player->bankruptcies_count,
                 'played' => 0,
                 'won' => 0,
                 'drawn' => 0,

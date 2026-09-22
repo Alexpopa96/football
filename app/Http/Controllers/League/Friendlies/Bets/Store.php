@@ -39,7 +39,7 @@ class Store extends Controller
                 $user->increment('bet_balance', $existing->stake);
             }
 
-            $user->decrement('bet_balance', $data['stake']);
+            $user->spendBetBalance($data['stake']);
 
             $friendly->bets()->updateOrCreate(
                 ['user_id' => $user->id],

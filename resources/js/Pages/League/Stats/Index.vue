@@ -144,6 +144,13 @@ const formatDate = (value) =>
                     >
                         🎲 {{ row.bet_balance }}p
                     </span>
+                    <span
+                        v-if="row.bankruptcies_count > 0"
+                        class="shrink-0 rounded-full bg-rose-500/15 px-2 py-0.5 text-[11px] font-semibold text-rose-400"
+                        :title="`A dat faliment de ${row.bankruptcies_count} ori`"
+                    >
+                        💀 ×{{ row.bankruptcies_count }}
+                    </span>
                     <span class="font-display text-lg font-extrabold text-white">{{ row[activeMetric] }}</span>
                 </Link>
 
