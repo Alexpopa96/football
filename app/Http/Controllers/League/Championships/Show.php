@@ -20,6 +20,7 @@ class Show extends Controller
             'matches.awayEntry.user',
             'matches.awayEntry.team',
             'matches.predictions.user',
+            'matches.bets.user',
         ]);
 
         $userId = Auth::id();
@@ -34,6 +35,9 @@ class Show extends Controller
                     ...$match->toArray(),
                     'my_prediction' => $match->predictions->firstWhere('user_id', $userId),
                     'predictions' => $match->isPlayed() ? $match->predictions : [],
+                    'bets' => $match->status === 'finished' ? $match->bets : [],
+                    'my_bets' => $match->bets->where('user_id', $userId)->values(),
+                    'can_bet' => $match->status === 'live' && ! $match->betting_locked_at && ! in_array($userId, $match->participantUserIds(), true),
                 ])->values(),
             ])
             ->values();

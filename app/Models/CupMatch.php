@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class CupMatch extends Model
 {
@@ -20,12 +21,17 @@ class CupMatch extends Model
         'winner_entry_id',
         'feeds_into_match_id',
         'feeds_into_side',
+        'status',
+        'started_at',
+        'betting_locked_at',
         'played_at',
     ];
 
     protected function casts(): array
     {
         return [
+            'started_at' => 'datetime',
+            'betting_locked_at' => 'datetime',
             'played_at' => 'datetime',
         ];
     }
@@ -55,8 +61,18 @@ class CupMatch extends Model
         return $this->belongsTo(CupMatch::class, 'feeds_into_match_id');
     }
 
+    public function bets(): MorphMany
+    {
+        return $this->morphMany(MatchBet::class, 'betable');
+    }
+
     public function isPlayed(): bool
     {
         return ! is_null($this->home_score) && ! is_null($this->away_score);
+    }
+
+    public function participantUserIds(): array
+    {
+        return array_filter([$this->homeEntry?->user_id, $this->awayEntry?->user_id]);
     }
 }

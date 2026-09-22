@@ -4,13 +4,14 @@ namespace App\Http\Controllers\League\Friendlies;
 
 use App\Http\Controllers\Controller;
 use App\Models\FriendlyMatch;
+use App\Services\BetResolver;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Request;
 
 class UpdateScore extends Controller
 {
-    public function __invoke(FriendlyMatch $friendly)
+    public function __invoke(FriendlyMatch $friendly, BetResolver $betResolver)
     {
         abort_unless(
             $friendly->created_by === Auth::id() || Auth::user()->can('manage league'),
@@ -24,7 +25,13 @@ class UpdateScore extends Controller
             'required' => 'Introdu ambele scoruri.',
         ]);
 
-        $friendly->update($data);
+        $friendly->update([
+            ...$data,
+            'status' => 'finished',
+            'played_at' => $friendly->played_at ?? now(),
+        ]);
+
+        $betResolver->resolve($friendly);
 
         return Redirect::back()->with(['success' => ['message' => 'Scor actualizat!']]);
     }

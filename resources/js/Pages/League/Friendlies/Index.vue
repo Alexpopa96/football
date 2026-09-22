@@ -5,7 +5,8 @@ import LeagueLayout from '@/Layouts/LeagueLayout.vue';
 import TeamCrest from '@/Components/League/TeamCrest.vue';
 import TeamWheel from '@/Components/League/TeamWheel.vue';
 import Modal from '@/Components/Modal.vue';
-import { PlusIcon, TrashIcon, HandRaisedIcon, SparklesIcon, MagnifyingGlassIcon, ChevronDownIcon, XMarkIcon, CheckCircleIcon, PencilIcon } from '@heroicons/vue/24/outline';
+import MatchBetting from '@/Components/League/MatchBetting.vue';
+import { PlusIcon, TrashIcon, HandRaisedIcon, SparklesIcon, MagnifyingGlassIcon, ChevronDownIcon, XMarkIcon, CheckCircleIcon, PencilIcon, PlayIcon, LockClosedIcon } from '@heroicons/vue/24/outline';
 
 const props = defineProps({
     can: Object,
@@ -15,6 +16,7 @@ const props = defineProps({
 });
 
 const showAdd = ref(false);
+const liveMode = ref(false);
 
 const form = useForm({
     home_user_id: props.players[0]?.id ?? null,
@@ -27,7 +29,8 @@ const form = useForm({
 
 const canSubmit = computed(() => form.home_user_id && form.away_user_id && form.home_user_id !== form.away_user_id && form.home_team_id && form.away_team_id);
 
-function openAdd() {
+function openAdd(live = false) {
+    liveMode.value = live;
     form.reset();
     form.clearErrors();
     showAdd.value = true;
@@ -158,7 +161,7 @@ function onLanded(team) {
 }
 
 function submit() {
-    form.post('/league/friendlies/store', {
+    form.post(liveMode.value ? '/league/friendlies/start-live' : '/league/friendlies/store', {
         preserveScroll: true,
         onSuccess: () => (showAdd.value = false),
     });
@@ -173,12 +176,16 @@ function canEditMatch(match) {
     return props.can.manage || match.created_by === usePage().props.auth.user.id;
 }
 
+function lockBetting(match) {
+    router.put(`/league/friendlies/${match.id}/lock-betting`, {}, { preserveScroll: true });
+}
+
 const editing = reactive({});
 
 function startEdit(match) {
     editing[match.id] = {
-        home_score: match.home_score,
-        away_score: match.away_score,
+        home_score: match.home_score ?? 0,
+        away_score: match.away_score ?? 0,
     };
 }
 
@@ -207,58 +214,78 @@ const formatDate = (value) =>
                 <h1 class="font-display text-3xl font-extrabold tracking-tight text-white">Meciuri amicale</h1>
                 <p class="mt-1 text-slate-400">Meciuri jucate în afara campionatelor, dar care contează la statistici.</p>
             </div>
-            <button @click="openAdd" class="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-400 to-blue-500 px-4 py-2.5 font-semibold text-pitch-950">
-                <PlusIcon class="h-5 w-5" /> Meci nou
-            </button>
+            <div class="flex gap-2">
+                <button @click="openAdd(true)" class="inline-flex items-center gap-2 rounded-2xl border border-rose-400/30 bg-rose-500/10 px-4 py-2.5 font-semibold text-rose-300 hover:bg-rose-500/20">
+                    <PlayIcon class="h-5 w-5" /> Meci live
+                </button>
+                <button @click="openAdd(false)" class="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-400 to-blue-500 px-4 py-2.5 font-semibold text-pitch-950">
+                    <PlusIcon class="h-5 w-5" /> Meci nou
+                </button>
+            </div>
         </div>
 
         <div class="space-y-2">
-            <div v-for="m in matches" :key="m.id" class="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 px-3 py-2.5 backdrop-blur-xl">
-                <div class="flex min-w-0 flex-1 items-center justify-end gap-2">
-                    <div class="min-w-0 text-right">
-                        <p class="truncate text-sm font-medium text-white">{{ m.home_team.short_name }}</p>
-                        <p class="truncate text-[11px] text-slate-500">{{ m.home_user.name }}</p>
-                    </div>
-                    <TeamCrest :team="m.home_team" size="h-8 w-8" />
-                </div>
-
-                <div class="shrink-0 px-2 text-center">
-                    <div v-if="editing[m.id]" class="flex items-center gap-1.5">
-                        <input v-model.number="editing[m.id].home_score" type="number" min="0" max="99" class="h-8 w-10 rounded-lg border border-white/10 bg-white/10 text-center text-sm text-white focus:border-emerald-400 focus:ring-emerald-400 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
-                        <span class="text-slate-500">-</span>
-                        <input v-model.number="editing[m.id].away_score" type="number" min="0" max="99" class="h-8 w-10 rounded-lg border border-white/10 bg-white/10 text-center text-sm text-white focus:border-emerald-400 focus:ring-emerald-400 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
-                        <button @click="saveScore(m)" class="ml-1 rounded-lg bg-emerald-500/20 p-1.5 text-emerald-400 hover:bg-emerald-500/30">
-                            <CheckCircleIcon class="h-4 w-4" />
-                        </button>
-                        <button @click="cancelEdit(m.id)" class="text-xs text-slate-500 hover:text-white">✕</button>
-                    </div>
-                    <button
-                        v-else-if="canEditMatch(m)"
-                        @click="startEdit(m)"
-                        class="group inline-flex items-center gap-1.5 rounded-lg px-2 py-0.5 font-display text-lg font-bold text-white transition hover:bg-white/10"
-                    >
-                        {{ m.home_score }} - {{ m.away_score }}
-                        <PencilIcon class="h-3 w-3 text-slate-500 opacity-0 transition group-hover:opacity-100" />
+            <div v-for="m in matches" :key="m.id" class="rounded-2xl border border-white/10 bg-white/5 px-3 py-2.5 backdrop-blur-xl">
+                <div v-if="m.status === 'live'" class="mb-1.5 flex items-center justify-center gap-1.5">
+                    <span class="inline-flex items-center gap-1 rounded-full bg-rose-500/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-rose-400">
+                        <span class="h-1.5 w-1.5 animate-pulse rounded-full bg-rose-400"></span> Live
+                    </span>
+                    <span v-if="m.betting_locked_at" class="inline-flex items-center gap-1 rounded-full bg-white/5 px-2 py-0.5 text-[10px] font-medium text-slate-400">
+                        <LockClosedIcon class="h-3 w-3" /> Pariuri blocate
+                    </span>
+                    <button v-else-if="canEditMatch(m)" @click="lockBetting(m)" class="inline-flex items-center gap-1 rounded-full bg-white/5 px-2.5 py-0.5 text-[10px] font-medium text-slate-400 hover:bg-white/10 hover:text-white">
+                        <LockClosedIcon class="h-3 w-3" /> Blochează pariurile
                     </button>
-                    <p v-else class="font-display text-lg font-bold text-white">{{ m.home_score }} - {{ m.away_score }}</p>
-                    <p class="text-[10px] text-slate-500">{{ formatDate(m.played_at) }}</p>
                 </div>
-
-                <div class="flex min-w-0 flex-1 items-center gap-2">
-                    <TeamCrest :team="m.away_team" size="h-8 w-8" />
-                    <div class="min-w-0">
-                        <p class="truncate text-sm font-medium text-white">{{ m.away_team.short_name }}</p>
-                        <p class="truncate text-[11px] text-slate-500">{{ m.away_user.name }}</p>
+                <div class="flex items-center justify-between gap-3">
+                    <div class="flex min-w-0 flex-1 items-center justify-end gap-2">
+                        <div class="min-w-0 text-right">
+                            <p class="truncate text-sm font-medium text-white">{{ m.home_team.short_name }}</p>
+                            <p class="truncate text-[11px] text-slate-500">{{ m.home_user.name }}</p>
+                        </div>
+                        <TeamCrest :team="m.home_team" size="h-8 w-8" />
                     </div>
+
+                    <div class="shrink-0 px-2 text-center">
+                        <div v-if="editing[m.id]" class="flex items-center gap-1.5">
+                            <input v-model.number="editing[m.id].home_score" type="number" min="0" max="99" class="h-8 w-10 rounded-lg border border-white/10 bg-white/10 text-center text-sm text-white focus:border-emerald-400 focus:ring-emerald-400 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
+                            <span class="text-slate-500">-</span>
+                            <input v-model.number="editing[m.id].away_score" type="number" min="0" max="99" class="h-8 w-10 rounded-lg border border-white/10 bg-white/10 text-center text-sm text-white focus:border-emerald-400 focus:ring-emerald-400 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
+                            <button @click="saveScore(m)" class="ml-1 rounded-lg bg-emerald-500/20 p-1.5 text-emerald-400 hover:bg-emerald-500/30">
+                                <CheckCircleIcon class="h-4 w-4" />
+                            </button>
+                            <button @click="cancelEdit(m.id)" class="text-xs text-slate-500 hover:text-white">✕</button>
+                        </div>
+                        <button
+                            v-else-if="canEditMatch(m)"
+                            @click="startEdit(m)"
+                            class="group inline-flex items-center gap-1.5 rounded-lg px-2 py-0.5 font-display text-lg font-bold text-white transition hover:bg-white/10"
+                        >
+                            <template v-if="m.home_score !== null">{{ m.home_score }} - {{ m.away_score }}</template>
+                            <template v-else><PencilIcon class="h-3.5 w-3.5" /> scor</template>
+                        </button>
+                        <p v-else class="font-display text-lg font-bold text-white">{{ m.home_score !== null ? `${m.home_score} - ${m.away_score}` : 'vs' }}</p>
+                        <p v-if="m.played_at" class="text-[10px] text-slate-500">{{ formatDate(m.played_at) }}</p>
+                    </div>
+
+                    <div class="flex min-w-0 flex-1 items-center gap-2">
+                        <TeamCrest :team="m.away_team" size="h-8 w-8" />
+                        <div class="min-w-0">
+                            <p class="truncate text-sm font-medium text-white">{{ m.away_team.short_name }}</p>
+                            <p class="truncate text-[11px] text-slate-500">{{ m.away_user.name }}</p>
+                        </div>
+                    </div>
+
+                    <button
+                        v-if="can.manage || m.created_by === $page.props.auth.user.id"
+                        @click="destroy(m)"
+                        class="shrink-0 rounded-lg p-1.5 text-slate-500 hover:bg-white/10 hover:text-rose-400"
+                    >
+                        <TrashIcon class="h-4 w-4" />
+                    </button>
                 </div>
 
-                <button
-                    v-if="can.manage || m.created_by === $page.props.auth.user.id"
-                    @click="destroy(m)"
-                    class="shrink-0 rounded-lg p-1.5 text-slate-500 hover:bg-white/10 hover:text-rose-400"
-                >
-                    <TrashIcon class="h-4 w-4" />
-                </button>
+                <MatchBetting :match="m" :store-url="`/league/friendlies/${m.id}/bets`" />
             </div>
 
             <div v-if="matches.length === 0" class="rounded-3xl border border-dashed border-white/15 bg-white/[0.02] p-10 text-center">
@@ -270,7 +297,8 @@ const formatDate = (value) =>
 
         <Modal :show="showAdd" @close="showAdd = false">
             <div class="bg-pitch-900 p-6">
-                <h2 class="mb-4 font-display text-lg font-bold text-white">Meci amical nou</h2>
+                <h2 class="mb-4 font-display text-lg font-bold text-white">{{ liveMode ? 'Meci live nou' : 'Meci amical nou' }}</h2>
+                <p v-if="liveMode" class="-mt-2 mb-4 text-xs text-slate-400">Meciul pornește fără scor — ceilalți jucători pot paria cât e live.</p>
                 <form class="space-y-4" @submit.prevent="submit">
                     <div class="grid grid-cols-2 gap-3">
                         <div>
@@ -332,7 +360,7 @@ const formatDate = (value) =>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-3">
+                    <div v-if="!liveMode" class="grid grid-cols-2 gap-3">
                         <div>
                             <label class="text-xs font-medium text-slate-300">Scor acasă</label>
                             <input v-model.number="form.home_score" type="number" min="0" max="99" class="mt-1 w-full rounded-2xl border border-white/10 bg-white/[0.04] px-3 py-2.5 text-center font-display text-lg font-bold text-white shadow-inner shadow-black/20 transition focus:border-emerald-400/60 focus:bg-white/[0.07] focus:outline-none focus:ring-4 focus:ring-emerald-400/10 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
@@ -345,7 +373,7 @@ const formatDate = (value) =>
 
                     <div class="flex justify-end gap-3 pt-2">
                         <button type="button" @click="showAdd = false" class="rounded-xl px-4 py-2 text-sm text-slate-400 hover:text-white">Anulează</button>
-                        <button type="submit" :disabled="form.processing || !canSubmit" class="rounded-xl bg-gradient-to-r from-emerald-400 to-blue-500 px-4 py-2 text-sm font-semibold text-pitch-950 disabled:opacity-50">Salvează</button>
+                        <button type="submit" :disabled="form.processing || !canSubmit" class="rounded-xl bg-gradient-to-r from-emerald-400 to-blue-500 px-4 py-2 text-sm font-semibold text-pitch-950 disabled:opacity-50">{{ liveMode ? 'Pornește meciul' : 'Salvează' }}</button>
                     </div>
                 </form>
             </div>

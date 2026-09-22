@@ -34,7 +34,7 @@ class PlayerStatsCalculator
      */
     public function leaderboard(): array
     {
-        $players = User::whereNotNull('pin')->orderBy('id')->get(['id', 'name', 'avatar_emoji', 'avatar_color', 'status']);
+        $players = User::whereNotNull('pin')->orderBy('id')->get(['id', 'name', 'avatar_emoji', 'avatar_color', 'status', 'bet_balance']);
 
         $stats = [];
         foreach ($players as $player) {
@@ -43,10 +43,12 @@ class PlayerStatsCalculator
                 'name' => $player->name,
                 'avatar_emoji' => $player->avatar_emoji,
                 'avatar_color' => $player->avatar_color,
+                'bet_balance' => $player->bet_balance,
                 'played' => 0,
                 'won' => 0,
                 'drawn' => 0,
                 'lost' => 0,
+                'points' => 0,
                 'goals_for' => 0,
                 'goals_against' => 0,
                 'championships' => [],
@@ -276,6 +278,7 @@ class PlayerStatsCalculator
         if ($homeScore > $awayScore) {
             if (isset($stats[$homeUserId])) {
                 $stats[$homeUserId]['won']++;
+                $stats[$homeUserId]['points'] += 3;
                 $stats[$homeUserId]['best_win_margin'] = max($stats[$homeUserId]['best_win_margin'], $homeScore - $awayScore);
             }
             if (isset($stats[$awayUserId])) {
@@ -284,6 +287,7 @@ class PlayerStatsCalculator
         } elseif ($homeScore < $awayScore) {
             if (isset($stats[$awayUserId])) {
                 $stats[$awayUserId]['won']++;
+                $stats[$awayUserId]['points'] += 3;
                 $stats[$awayUserId]['best_win_margin'] = max($stats[$awayUserId]['best_win_margin'], $awayScore - $homeScore);
             }
             if (isset($stats[$homeUserId])) {
@@ -292,9 +296,11 @@ class PlayerStatsCalculator
         } else {
             if (isset($stats[$homeUserId])) {
                 $stats[$homeUserId]['drawn']++;
+                $stats[$homeUserId]['points']++;
             }
             if (isset($stats[$awayUserId])) {
                 $stats[$awayUserId]['drawn']++;
+                $stats[$awayUserId]['points']++;
             }
         }
     }

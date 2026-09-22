@@ -13,14 +13,24 @@ class Index extends Controller
 {
     public function __invoke()
     {
+        $userId = Auth::id();
+
         return Inertia::render('League/Friendlies/Index', [
             'can' => [
                 'manage' => Auth::user()->can('manage league'),
             ],
             'matches' => FriendlyMatch::query()
-                ->with(['homeUser', 'awayUser', 'homeTeam', 'awayTeam'])
+                ->with(['homeUser', 'awayUser', 'homeTeam', 'awayTeam', 'bets.user'])
+                ->orderByRaw("status = 'live' desc")
                 ->latest('played_at')
-                ->get(),
+                ->latest('started_at')
+                ->get()
+                ->map(fn ($match) => [
+                    ...$match->toArray(),
+                    'bets' => $match->status === 'finished' ? $match->bets : [],
+                    'my_bets' => $match->bets->where('user_id', $userId)->values(),
+                    'can_bet' => $match->status === 'live' && ! $match->betting_locked_at && ! in_array($userId, $match->participantUserIds(), true),
+                ]),
             'players' => User::whereNotNull('pin')
                 ->where('status', true)
                 ->orderBy('id')

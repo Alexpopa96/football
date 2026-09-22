@@ -5,12 +5,13 @@ namespace App\Http\Controllers\League\Cups;
 use App\Http\Controllers\Controller;
 use App\Models\Cup;
 use App\Models\CupMatch;
+use App\Services\BetResolver;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Request;
 
 class RecordScore extends Controller
 {
-    public function __invoke(Cup $cup, CupMatch $match)
+    public function __invoke(Cup $cup, CupMatch $match, BetResolver $betResolver)
     {
         abort_unless($match->cup_id === $cup->id, 404);
         abort_unless($match->home_entry_id && $match->away_entry_id, 422);
@@ -49,8 +50,11 @@ class RecordScore extends Controller
             'home_penalties' => $isDraw ? $data['home_penalties'] : null,
             'away_penalties' => $isDraw ? $data['away_penalties'] : null,
             'winner_entry_id' => $winnerEntryId,
+            'status' => 'finished',
             'played_at' => now(),
         ]);
+
+        $betResolver->resolve($match);
 
         if ($match->feeds_into_match_id) {
             $match->feedsInto->update([

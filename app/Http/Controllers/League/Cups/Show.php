@@ -20,7 +20,10 @@ class Show extends Controller
             'matches.homeEntry.team',
             'matches.awayEntry.user',
             'matches.awayEntry.team',
+            'matches.bets.user',
         ]);
+
+        $userId = Auth::id();
 
         $roundsByNumber = $cup->matches->sortBy('round')->groupBy('round');
         $totalRounds = $roundsByNumber->count();
@@ -29,7 +32,12 @@ class Show extends Controller
             ->map(fn ($matches, $round) => [
                 'round' => (int) $round,
                 'label' => $this->roundLabel((int) $round, $totalRounds),
-                'matches' => $matches->sortBy('slot')->values(),
+                'matches' => $matches->sortBy('slot')->map(fn ($match) => [
+                    ...$match->toArray(),
+                    'bets' => $match->status === 'finished' ? $match->bets : [],
+                    'my_bets' => $match->bets->where('user_id', $userId)->values(),
+                    'can_bet' => $match->status === 'live' && ! $match->betting_locked_at && ! in_array($userId, $match->participantUserIds(), true),
+                ])->values(),
             ])
             ->values();
 

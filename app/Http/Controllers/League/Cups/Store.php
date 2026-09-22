@@ -14,11 +14,12 @@ class Store extends Controller
     {
         $data = Request::validate([
             'name' => ['required', 'string', 'max:255'],
-            'player_ids' => ['required', 'array', 'size:4'],
+            'player_ids' => ['required', 'array', 'min:3', 'max:4'],
             'player_ids.*' => ['required', 'integer', 'distinct', 'exists:users,id'],
         ], [
             'required' => 'Campul este obligatoriu',
-            'size' => 'Trebuie să alegi exact 4 jucători.',
+            'min' => 'Trebuie să alegi cel puțin 3 jucători.',
+            'max' => 'Poți alege cel mult 4 jucători.',
             'distinct' => 'Fiecare jucător poate fi ales o singură dată.',
         ]);
 

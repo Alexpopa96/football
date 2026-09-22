@@ -17,6 +17,7 @@ const props = defineProps({
 
 const metrics = [
     { key: 'rating', label: 'Rating' },
+    { key: 'points', label: 'Puncte' },
     { key: 'won', label: 'Victorii' },
     { key: 'played', label: 'Meciuri' },
     { key: 'goals_for', label: 'Goluri' },
@@ -25,6 +26,7 @@ const metrics = [
     { key: 'hattricks', label: 'Hattrick-uri' },
     { key: 'best_win_margin', label: 'Victorie mare' },
     { key: 'longest_win_streak', label: 'Serie victorii' },
+    { key: 'bet_balance', label: 'Sold pariuri' },
 ];
 
 const activeMetric = ref('rating');
@@ -135,6 +137,13 @@ const formatDate = (value) =>
                             {{ row.played }}J &middot; {{ row.won }}V {{ row.drawn }}E {{ row.lost }}Î &middot; {{ row.goals_for }}-{{ row.goals_against }}G
                         </p>
                     </div>
+                    <span
+                        class="shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold"
+                        :class="row.bet_balance > 0 ? 'bg-violet-500/15 text-violet-300' : 'bg-rose-500/15 text-rose-400'"
+                        title="Sold din pariuri"
+                    >
+                        🎲 {{ row.bet_balance }}p
+                    </span>
                     <span class="font-display text-lg font-extrabold text-white">{{ row[activeMetric] }}</span>
                 </Link>
 

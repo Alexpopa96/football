@@ -3,7 +3,8 @@ import { reactive } from 'vue';
 import { router } from '@inertiajs/vue3';
 import LeagueLayout from '@/Layouts/LeagueLayout.vue';
 import TeamCrest from '@/Components/League/TeamCrest.vue';
-import { CheckCircleIcon, PencilIcon, HandRaisedIcon } from '@heroicons/vue/24/outline';
+import MatchBetting from '@/Components/League/MatchBetting.vue';
+import { CheckCircleIcon, PencilIcon, HandRaisedIcon, PlayIcon, LockClosedIcon } from '@heroicons/vue/24/outline';
 
 const props = defineProps({
     can: Object,
@@ -31,6 +32,14 @@ function saveScore(match) {
         preserveScroll: true,
         onSuccess: () => delete editing[match.id],
     });
+}
+
+function startMatch(match) {
+    router.put(`/league/championships/${props.championship.id}/matches/${match.id}/start`, {}, { preserveScroll: true });
+}
+
+function lockBetting(match) {
+    router.put(`/league/championships/${props.championship.id}/matches/${match.id}/lock-betting`, {}, { preserveScroll: true });
 }
 
 const predicting = reactive({});
@@ -154,6 +163,22 @@ const legLabel = (leg) => (leg === 'tur' ? 'Tur' : 'Retur');
                     <p class="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500">{{ legLabel(round.leg) }} &middot; Runda {{ round.round }}</p>
                     <div class="space-y-2">
                         <div v-for="match in round.matches" :key="match.id" class="rounded-2xl bg-white/[0.03] px-3 py-2.5">
+                            <div v-if="match.status === 'live'" class="mb-1.5 flex items-center justify-center gap-1.5">
+                                <span class="inline-flex items-center gap-1 rounded-full bg-rose-500/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-rose-400">
+                                    <span class="h-1.5 w-1.5 animate-pulse rounded-full bg-rose-400"></span> Live
+                                </span>
+                                <span v-if="match.betting_locked_at" class="inline-flex items-center gap-1 rounded-full bg-white/5 px-2 py-0.5 text-[10px] font-medium text-slate-400">
+                                    <LockClosedIcon class="h-3 w-3" /> Pariuri blocate
+                                </span>
+                                <button v-else-if="can.manage" @click="lockBetting(match)" class="inline-flex items-center gap-1 rounded-full bg-white/5 px-2.5 py-0.5 text-[10px] font-medium text-slate-400 hover:bg-white/10 hover:text-white">
+                                    <LockClosedIcon class="h-3 w-3" /> Blochează pariurile
+                                </button>
+                            </div>
+                            <div v-else-if="can.manage && match.status === 'not_started' && match.home_score === null" class="mb-1.5 flex justify-center">
+                                <button @click="startMatch(match)" class="inline-flex items-center gap-1 rounded-full bg-white/5 px-2.5 py-0.5 text-[10px] font-medium text-slate-400 hover:bg-white/10 hover:text-white">
+                                    <PlayIcon class="h-3 w-3" /> Start meci
+                                </button>
+                            </div>
                             <div class="flex items-center justify-between gap-3">
                                 <div class="flex min-w-0 flex-1 items-center justify-end gap-2">
                                     <span class="truncate text-sm font-medium text-white">{{ match.home_entry.team.short_name }}</span>
@@ -233,6 +258,8 @@ const legLabel = (leg) => (leg === 'tur' ? 'Tur' : 'Retur');
                                     <span v-if="!match.predictions.length" class="text-[11px] text-slate-600">Nimeni nu a pontat</span>
                                 </div>
                             </div>
+
+                            <MatchBetting :match="match" :store-url="`/league/championships/${championship.id}/matches/${match.id}/bets`" />
                         </div>
                     </div>
                 </div>
