@@ -5,13 +5,14 @@ namespace App\Http\Controllers\League\Friendlies;
 use App\Http\Controllers\Controller;
 use App\Models\FriendlyMatch;
 use App\Services\BetResolver;
+use App\Services\PlayerStatsCalculator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Request;
 
 class UpdateScore extends Controller
 {
-    public function __invoke(FriendlyMatch $friendly, BetResolver $betResolver)
+    public function __invoke(FriendlyMatch $friendly, BetResolver $betResolver, PlayerStatsCalculator $statsCalculator)
     {
         abort_unless(
             $friendly->created_by === Auth::id() || Auth::user()->can('manage league'),
@@ -32,6 +33,7 @@ class UpdateScore extends Controller
         ]);
 
         $betResolver->resolve($friendly);
+        $statsCalculator->recalculateRatings();
 
         return Redirect::back()->with(['success' => ['message' => 'Scor actualizat!']]);
     }

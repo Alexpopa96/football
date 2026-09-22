@@ -12,6 +12,7 @@ const props = defineProps({
 const CORRECT_SCORE_MAX_GOALS = 6;
 const MATCH_RESULT_ODDS = 2.0;
 const CORRECT_SCORE_ODDS = 10.0;
+const HANDICAP_ODDS_BY_MARGIN = { 2: 1.5, 3: 2.5, 4: 3.5 };
 
 const correctScoreOptions = [];
 for (let home = 0; home <= CORRECT_SCORE_MAX_GOALS; home++) {
@@ -21,6 +22,17 @@ for (let home = 0; home <= CORRECT_SCORE_MAX_GOALS; home++) {
     }
 }
 correctScoreOptions.push({ value: 'other', label: 'Altul', odds: CORRECT_SCORE_ODDS });
+
+const handicapOptions = [];
+for (const [side, sideLabel] of [['home', 'Gazdă'], ['away', 'Oaspete']]) {
+    for (const margin of Object.keys(HANDICAP_ODDS_BY_MARGIN)) {
+        handicapOptions.push({
+            value: `${side}_by_${margin}`,
+            label: `${sideLabel} +${margin}`,
+            odds: HANDICAP_ODDS_BY_MARGIN[margin],
+        });
+    }
+}
 
 const MARKETS = [
     {
@@ -36,6 +48,11 @@ const MARKETS = [
         key: 'correct_score',
         label: 'Scor exact (0-0 → 6-6)',
         options: correctScoreOptions,
+    },
+    {
+        key: 'handicap',
+        label: 'Diferență de goluri',
+        options: handicapOptions,
     },
 ];
 
@@ -159,7 +176,8 @@ const pointsClass = (points) => (points > 0 ? 'bg-emerald-500/20 text-emerald-40
                     <span class="rounded-full bg-white/5 px-2.5 py-1 text-xs font-semibold text-white">Sold: {{ availableForStake }}p</span>
                 </div>
                 <p class="mb-4 text-xs text-slate-400">
-                    Un singur pariu activ pe acest meci &middot; 1X2 {{ MATCH_RESULT_ODDS.toFixed(2) }}x, scor exact {{ CORRECT_SCORE_ODDS.toFixed(2) }}x. Dacă pierzi, îți pierzi miza.
+                    Un singur pariu activ pe acest meci &middot; 1X2 {{ MATCH_RESULT_ODDS.toFixed(2) }}x, scor exact {{ CORRECT_SCORE_ODDS.toFixed(2) }}x, diferență de goluri
+                    1.50x&ndash;3.50x. Dacă pierzi, îți pierzi miza.
                 </p>
 
                 <div class="max-h-[45vh] space-y-4 overflow-y-auto pr-1">
@@ -213,6 +231,26 @@ const pointsClass = (points) => (points > 0 ? 'bg-emerald-500/20 text-emerald-40
                         >
                             Alt scor
                         </button>
+                    </div>
+
+                    <div>
+                        <p class="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-500">Diferență de goluri</p>
+                        <div class="flex flex-wrap gap-1.5">
+                            <button
+                                v-for="opt in handicapOptions"
+                                :key="opt.value"
+                                type="button"
+                                @click="selectOption('handicap', opt.value)"
+                                class="rounded-xl px-3 py-2 text-sm font-medium transition"
+                                :class="
+                                    isSelectedOption('handicap', opt.value)
+                                        ? 'bg-violet-500/20 text-violet-300 ring-1 ring-violet-400/40'
+                                        : 'bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white'
+                                "
+                            >
+                                {{ opt.label }} <span class="text-[10px] text-slate-500">({{ opt.odds.toFixed(2) }}x)</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
 

@@ -11,14 +11,24 @@ use App\Models\User;
 class PlayerStatsCalculator
 {
     /**
-     * Starting Elo rating for a player with no match history yet.
+     * Starting rating for a player with no match history yet.
      */
-    private const ELO_INITIAL_RATING = 1000;
+    private const STARTING_RATING = 0;
 
     /**
-     * How much a single result can move a rating. Higher = more volatile.
+     * Rating awarded for a win.
      */
-    private const ELO_K_FACTOR = 32;
+    private const WIN_RATING_POINTS = 3;
+
+    /**
+     * Rating awarded for a draw.
+     */
+    private const DRAW_RATING_POINTS = 1;
+
+    /**
+     * Rating awarded for a loss.
+     */
+    private const LOSS_RATING_POINTS = -1;
 
     /**
      * A team needs at least this many games (by a player, or overall) before it
@@ -34,7 +44,7 @@ class PlayerStatsCalculator
      */
     public function leaderboard(): array
     {
-        $players = User::whereNotNull('pin')->orderBy('id')->get(['id', 'name', 'avatar_emoji', 'avatar_color', 'status', 'bet_balance']);
+        $players = User::whereNotNull('pin')->orderBy('id')->get(['id', 'name', 'avatar_emoji', 'avatar_color', 'status', 'bet_balance', 'rating']);
 
         $stats = [];
         foreach ($players as $player) {
@@ -54,7 +64,7 @@ class PlayerStatsCalculator
                 'championships' => [],
                 'championships_won' => 0,
                 'cups_won' => 0,
-                'rating' => self::ELO_INITIAL_RATING,
+                'rating' => $player->rating,
                 'hattricks' => 0,
                 'best_win_margin' => 0,
                 'longest_win_streak' => 0,
@@ -160,7 +170,6 @@ class PlayerStatsCalculator
             ];
         }
 
-        $this->applyEloRatings($stats, $chronologicalResults);
         $this->applyWinStreaks($stats, $chronologicalResults);
 
         return collect($stats)
@@ -169,7 +178,6 @@ class PlayerStatsCalculator
                 unset($row['championships']);
                 $row['goal_difference'] = $row['goals_for'] - $row['goals_against'];
                 $row['win_rate'] = $row['played'] > 0 ? round($row['won'] / $row['played'] * 100) : 0;
-                $row['rating'] = (int) round($row['rating']);
 
                 return $row;
             })
@@ -178,46 +186,114 @@ class PlayerStatsCalculator
     }
 
     /**
-     * Replay every result in chronological order and update Elo ratings after each one,
-     * so the rating reflects current form rather than career totals like trophies do.
-     *
-     * @param  array<int, array<string, mixed>>  $stats
-     * @param  array<int, array<string, mixed>>  $matches
+     * Replay every played match in the league (championships, cups, friendlies) and
+     * store each player's resulting rating on the users table, so it no longer has
+     * to be recomputed on every page load. A win is worth 3, a draw 1, and a loss -1.
      */
-    private function applyEloRatings(array &$stats, array $matches): void
+    public function recalculateRatings(): void
     {
-        usort($matches, fn ($a, $b) => $a['played_at'] <=> $b['played_at']);
-
         $ratings = [];
 
-        foreach ($matches as $match) {
+        foreach ($this->playedMatchesChronological() as $match) {
             $homeId = $match['home_user_id'];
             $awayId = $match['away_user_id'];
 
-            $homeRating = $ratings[$homeId] ??= self::ELO_INITIAL_RATING;
-            $awayRating = $ratings[$awayId] ??= self::ELO_INITIAL_RATING;
-
-            $expectedHome = 1 / (1 + 10 ** (($awayRating - $homeRating) / 400));
+            $ratings[$homeId] ??= self::STARTING_RATING;
+            $ratings[$awayId] ??= self::STARTING_RATING;
 
             if ($match['home_score'] > $match['away_score']) {
-                $actualHome = 1.0;
+                $ratings[$homeId] += self::WIN_RATING_POINTS;
+                $ratings[$awayId] += self::LOSS_RATING_POINTS;
             } elseif ($match['home_score'] < $match['away_score']) {
-                $actualHome = 0.0;
+                $ratings[$awayId] += self::WIN_RATING_POINTS;
+                $ratings[$homeId] += self::LOSS_RATING_POINTS;
             } else {
-                $actualHome = 0.5;
+                $ratings[$homeId] += self::DRAW_RATING_POINTS;
+                $ratings[$awayId] += self::DRAW_RATING_POINTS;
             }
-
-            $shift = self::ELO_K_FACTOR * ($actualHome - $expectedHome);
-
-            $ratings[$homeId] = $homeRating + $shift;
-            $ratings[$awayId] = $awayRating - $shift;
         }
 
         foreach ($ratings as $userId => $rating) {
-            if (isset($stats[$userId])) {
-                $stats[$userId]['rating'] = $rating;
+            User::whereKey($userId)->update(['rating' => $rating]);
+        }
+    }
+
+    /**
+     * Every played match across championships, cups, and friendlies, oldest first.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function playedMatchesChronological(): array
+    {
+        $matches = [];
+
+        foreach (Championship::with('entries', 'matches')->get() as $championship) {
+            $entriesById = $championship->entries->keyBy('id');
+
+            foreach ($championship->matches as $match) {
+                if (! $match->isPlayed()) {
+                    continue;
+                }
+
+                $homeEntry = $entriesById->get($match->home_entry_id);
+                $awayEntry = $entriesById->get($match->away_entry_id);
+
+                if (! $homeEntry || ! $awayEntry) {
+                    continue;
+                }
+
+                $matches[] = [
+                    'played_at' => $match->played_at,
+                    'home_user_id' => $homeEntry->user_id,
+                    'away_user_id' => $awayEntry->user_id,
+                    'home_score' => $match->home_score,
+                    'away_score' => $match->away_score,
+                ];
             }
         }
+
+        foreach (Cup::with('entries', 'matches')->get() as $cup) {
+            $entriesById = $cup->entries->keyBy('id');
+
+            foreach ($cup->matches as $match) {
+                if (! $match->isPlayed()) {
+                    continue;
+                }
+
+                $homeEntry = $entriesById->get($match->home_entry_id);
+                $awayEntry = $entriesById->get($match->away_entry_id);
+
+                if (! $homeEntry || ! $awayEntry) {
+                    continue;
+                }
+
+                $matches[] = [
+                    'played_at' => $match->played_at,
+                    'home_user_id' => $homeEntry->user_id,
+                    'away_user_id' => $awayEntry->user_id,
+                    'home_score' => $match->home_score,
+                    'away_score' => $match->away_score,
+                ];
+            }
+        }
+
+        foreach (FriendlyMatch::all() as $friendly) {
+            if (! $friendly->isPlayed()) {
+                continue;
+            }
+
+            $matches[] = [
+                'played_at' => $friendly->played_at,
+                'home_user_id' => $friendly->home_user_id,
+                'away_user_id' => $friendly->away_user_id,
+                'home_score' => $friendly->home_score,
+                'away_score' => $friendly->away_score,
+            ];
+        }
+
+        usort($matches, fn ($a, $b) => $a['played_at'] <=> $b['played_at']);
+
+        return $matches;
     }
 
     /**
@@ -377,6 +453,10 @@ class PlayerStatsCalculator
         }
 
         foreach (FriendlyMatch::all() as $friendly) {
+            if (! $friendly->isPlayed()) {
+                continue;
+            }
+
             $record($friendly->home_team_id, $friendly->home_user_id, $friendly->home_score, $friendly->away_score);
             $record($friendly->away_team_id, $friendly->away_user_id, $friendly->away_score, $friendly->home_score);
         }
@@ -525,112 +605,35 @@ class PlayerStatsCalculator
     }
 
     /**
-     * One player's Elo rating after each of their matches, in chronological order.
-     * Elo is relative, so this replays every match in the league (not just the
-     * player's own) to keep opponent strength accurate, then keeps only the
-     * points where this player was involved.
+     * One player's rating after each of their matches, in chronological order.
      *
      * @return array<int, array<string, mixed>>
      */
     public function ratingHistoryFor(int $userId): array
     {
-        $matches = [];
-
-        foreach (Championship::with('entries', 'matches')->get() as $championship) {
-            $entriesById = $championship->entries->keyBy('id');
-
-            foreach ($championship->matches as $match) {
-                if (! $match->isPlayed()) {
-                    continue;
-                }
-
-                $homeEntry = $entriesById->get($match->home_entry_id);
-                $awayEntry = $entriesById->get($match->away_entry_id);
-
-                if (! $homeEntry || ! $awayEntry) {
-                    continue;
-                }
-
-                $matches[] = [
-                    'played_at' => $match->played_at,
-                    'home_user_id' => $homeEntry->user_id,
-                    'away_user_id' => $awayEntry->user_id,
-                    'home_score' => $match->home_score,
-                    'away_score' => $match->away_score,
-                ];
-            }
-        }
-
-        foreach (Cup::with('entries', 'matches')->get() as $cup) {
-            $entriesById = $cup->entries->keyBy('id');
-
-            foreach ($cup->matches as $match) {
-                if (! $match->isPlayed()) {
-                    continue;
-                }
-
-                $homeEntry = $entriesById->get($match->home_entry_id);
-                $awayEntry = $entriesById->get($match->away_entry_id);
-
-                if (! $homeEntry || ! $awayEntry) {
-                    continue;
-                }
-
-                $matches[] = [
-                    'played_at' => $match->played_at,
-                    'home_user_id' => $homeEntry->user_id,
-                    'away_user_id' => $awayEntry->user_id,
-                    'home_score' => $match->home_score,
-                    'away_score' => $match->away_score,
-                ];
-            }
-        }
-
-        foreach (FriendlyMatch::all() as $friendly) {
-            $matches[] = [
-                'played_at' => $friendly->played_at,
-                'home_user_id' => $friendly->home_user_id,
-                'away_user_id' => $friendly->away_user_id,
-                'home_score' => $friendly->home_score,
-                'away_score' => $friendly->away_score,
-            ];
-        }
-
-        usort($matches, fn ($a, $b) => $a['played_at'] <=> $b['played_at']);
-
-        $ratings = [];
+        $rating = self::STARTING_RATING;
         $history = [];
 
-        foreach ($matches as $match) {
+        foreach ($this->playedMatchesChronological() as $match) {
             $homeId = $match['home_user_id'];
             $awayId = $match['away_user_id'];
-
-            $homeRating = $ratings[$homeId] ??= self::ELO_INITIAL_RATING;
-            $awayRating = $ratings[$awayId] ??= self::ELO_INITIAL_RATING;
-
-            $expectedHome = 1 / (1 + 10 ** (($awayRating - $homeRating) / 400));
-
-            if ($match['home_score'] > $match['away_score']) {
-                $actualHome = 1.0;
-            } elseif ($match['home_score'] < $match['away_score']) {
-                $actualHome = 0.0;
-            } else {
-                $actualHome = 0.5;
-            }
-
-            $shift = self::ELO_K_FACTOR * ($actualHome - $expectedHome);
-
-            $ratings[$homeId] = $homeRating + $shift;
-            $ratings[$awayId] = $awayRating - $shift;
 
             if ($homeId === $userId || $awayId === $userId) {
                 $isHome = $homeId === $userId;
                 $ownScore = $isHome ? $match['home_score'] : $match['away_score'];
                 $opponentScore = $isHome ? $match['away_score'] : $match['home_score'];
 
+                if ($ownScore > $opponentScore) {
+                    $rating += self::WIN_RATING_POINTS;
+                } elseif ($ownScore === $opponentScore) {
+                    $rating += self::DRAW_RATING_POINTS;
+                } else {
+                    $rating += self::LOSS_RATING_POINTS;
+                }
+
                 $history[] = [
                     'played_at' => $match['played_at'],
-                    'rating' => (int) round($ratings[$userId]),
+                    'rating' => $rating,
                     'opponent_id' => $isHome ? $awayId : $homeId,
                     'result' => $ownScore > $opponentScore ? 'W' : ($ownScore < $opponentScore ? 'L' : 'D'),
                 ];

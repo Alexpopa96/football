@@ -37,6 +37,7 @@ class User extends Authenticatable
         'pin',
         'avatar_emoji',
         'avatar_color',
+        'rating',
     ];
 
     /**

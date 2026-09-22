@@ -6,13 +6,14 @@ use App\Http\Controllers\Controller;
 use App\Models\Championship;
 use App\Models\ChampionshipMatch;
 use App\Services\BetResolver;
+use App\Services\PlayerStatsCalculator;
 use App\Services\PredictionScorer;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Request;
 
 class RecordScore extends Controller
 {
-    public function __invoke(Championship $championship, ChampionshipMatch $match, PredictionScorer $scorer, BetResolver $betResolver)
+    public function __invoke(Championship $championship, ChampionshipMatch $match, PredictionScorer $scorer, BetResolver $betResolver, PlayerStatsCalculator $statsCalculator)
     {
         abort_unless($match->championship_id === $championship->id, 404);
 
@@ -32,6 +33,7 @@ class RecordScore extends Controller
 
         $scorer->scoreMatch($match);
         $betResolver->resolve($match);
+        $statsCalculator->recalculateRatings();
 
         $allPlayed = ! $championship->matches()->whereNull('home_score')->exists();
         if ($allPlayed && $championship->status !== 'completed') {

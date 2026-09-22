@@ -4,13 +4,14 @@ namespace App\Http\Controllers\League\Friendlies;
 
 use App\Http\Controllers\Controller;
 use App\Models\FriendlyMatch;
+use App\Services\PlayerStatsCalculator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Request;
 
 class Store extends Controller
 {
-    public function __invoke()
+    public function __invoke(PlayerStatsCalculator $statsCalculator)
     {
         $data = Request::validate([
             'home_user_id' => ['required', 'exists:users,id', 'different:away_user_id'],
@@ -29,6 +30,8 @@ class Store extends Controller
             'played_at' => now(),
             'created_by' => Auth::id(),
         ]);
+
+        $statsCalculator->recalculateRatings();
 
         return Redirect::back()->with(['success' => ['message' => 'Meciul amical a fost adăugat!']]);
     }

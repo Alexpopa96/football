@@ -6,12 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Models\Cup;
 use App\Models\CupMatch;
 use App\Services\BetResolver;
+use App\Services\PlayerStatsCalculator;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Request;
 
 class RecordScore extends Controller
 {
-    public function __invoke(Cup $cup, CupMatch $match, BetResolver $betResolver)
+    public function __invoke(Cup $cup, CupMatch $match, BetResolver $betResolver, PlayerStatsCalculator $statsCalculator)
     {
         abort_unless($match->cup_id === $cup->id, 404);
         abort_unless($match->home_entry_id && $match->away_entry_id, 422);
@@ -55,6 +56,7 @@ class RecordScore extends Controller
         ]);
 
         $betResolver->resolve($match);
+        $statsCalculator->recalculateRatings();
 
         if ($match->feeds_into_match_id) {
             $match->feedsInto->update([
