@@ -1,0 +1,13 @@
+{
+    "appId": "com.alexpopa.fifaleague",
+    "appName": "FIFA League",
+    "webDir": "capacitor-www",
+    "server": {
+        "url": "https://dev5p2.dezvolt.eu",
+        "cleartext": false
+    },
+    "ios": {
+        "contentInset": "never",
+        "backgroundColor": "#05070d"
+    }
+}
