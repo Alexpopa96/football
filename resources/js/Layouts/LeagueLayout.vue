@@ -67,7 +67,7 @@ const logout = () => router.post(route('logout'));
 
         <!-- App top bar -->
         <header
-            class="fixed inset-x-0 top-0 z-40 border-b border-white/10 bg-pitch-950/80 px-4 backdrop-blur-xl"
+            class="fixed inset-x-0 top-0 z-40 border-b border-white/10 bg-pitch-950 px-4"
             style="padding-top: max(0.75rem, env(safe-area-inset-top)); padding-bottom: 0.75rem;"
         >
             <div class="mx-auto flex max-w-3xl items-center justify-between">
@@ -105,7 +105,7 @@ const logout = () => router.post(route('logout'));
 
         <!-- Bottom tab bar -->
         <nav
-            class="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-pitch-950/90 backdrop-blur-xl"
+            class="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-pitch-950"
             style="padding-bottom: env(safe-area-inset-bottom);"
         >
             <div class="mx-auto flex max-w-3xl items-stretch justify-around px-2">
