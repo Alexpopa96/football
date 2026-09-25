@@ -16,12 +16,17 @@ import { Keyboard } from '@capacitor/keyboard';
 // Hide the ˄ ˅ ✓ bar iOS shows above the keyboard in web views.
 if (Capacitor.isNativePlatform()) Keyboard.setAccessoryBarVisible({ isVisible: false });
 
+// Keep the startup loader on screen at least this long, so it doesn't just flash.
+const APP_LOADER_MIN_MS = 1200;
+
 // Fades out the startup loader from app.blade.php once Vue has rendered the first page.
 function hideAppLoader() {
     const loader = document.getElementById('app-loader');
     if (!loader) return;
-    requestAnimationFrame(() => loader.classList.add('is-hidden'));
-    loader.addEventListener('transitionend', () => loader.remove(), { once: true });
+    setTimeout(() => {
+        loader.classList.add('is-hidden');
+        loader.addEventListener('transitionend', () => loader.remove(), { once: true });
+    }, Math.max(0, APP_LOADER_MIN_MS - performance.now()));
 }
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';

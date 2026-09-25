@@ -45,7 +45,7 @@
         position: fixed; inset: 0; z-index: 9999;
         display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 40px;
         background: #05070d;
-        transition: opacity .35s ease-out;
+        transition: opacity .5s ease-out;
     }
     #app-loader img { width: 110px; height: 110px; margin-top: -30px; }
     #app-loader.is-hidden { opacity: 0; pointer-events: none; }
