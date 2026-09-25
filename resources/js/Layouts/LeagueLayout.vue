@@ -67,9 +67,9 @@ const logout = () => router.post(route('logout'));
             <div class="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:40px_40px]"></div>
         </div>
 
-        <!-- App top bar -->
+        <!-- App top bar: sticky, not fixed — iOS blurs a fixed header in the Home Screen app -->
         <header
-            class="fixed inset-x-0 top-0 z-40 border-b border-white/10 bg-pitch-950 px-4"
+            class="sticky top-0 z-40 border-b border-white/10 bg-pitch-950 px-4"
             style="padding-top: max(0.75rem, env(safe-area-inset-top)); padding-bottom: 0.75rem;"
         >
             <div class="mx-auto flex max-w-3xl items-center justify-between">
@@ -97,7 +97,7 @@ const logout = () => router.post(route('logout'));
         <!-- Main content -->
         <main
             class="relative mx-auto w-full max-w-3xl px-3 sm:px-6"
-            style="padding-top: calc(3.5rem + env(safe-area-inset-top) + 0.75rem); padding-bottom: calc(5rem + env(safe-area-inset-bottom));"
+            style="padding-top: 0.75rem; padding-bottom: calc(5rem + env(safe-area-inset-bottom));"
         >
             <header v-if="$slots.header" class="mb-5">
                 <slot name="header" />
