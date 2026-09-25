@@ -14,3 +14,18 @@
         font-size: 16px !important;
     }
 }
+
+/* iOS 26+ blurs the top of a black-translucent Home Screen app over the header, unless a fixed
+   opaque box sits exactly under the status bar — WebKit then uses its colour instead. */
+.pwa-statusbar { display: none; }
+html.is-standalone .pwa-statusbar {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: env(safe-area-inset-top);
+    background: #05070d;
+    z-index: 50;
+    pointer-events: none;
+}

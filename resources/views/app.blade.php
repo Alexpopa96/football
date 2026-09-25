@@ -5,11 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    {{-- Not black-translucent: on iOS 26+ it makes the system blur the top of the installed app over the header. --}}
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="FIFA League">
     <meta name="theme-color" content="#05070d">
     <link rel="manifest" href="/manifest.json">
+    <script>
+        // Home Screen app (standalone PWA): lets CSS target it even where display-mode isn't supported.
+        if (navigator.standalone === true || matchMedia('(display-mode: standalone)').matches) {
+            document.documentElement.classList.add('is-standalone');
+        }
+    </script>
     <link rel="apple-touch-icon" href="/icons/icon-192.png">
 
     <title inertia>{{ config('app.name', 'Laravel') }}</title>

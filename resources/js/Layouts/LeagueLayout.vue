@@ -57,6 +57,8 @@ const logout = () => router.post(route('logout'));
     <Head :title="title" />
 
     <div class="min-h-[100dvh] w-full bg-pitch-950 text-slate-100 font-sans antialiased selection:bg-emerald-500/30">
+        <div class="pwa-statusbar" aria-hidden="true"></div>
+
         <!-- ambient background -->
         <div class="pointer-events-none fixed inset-0 overflow-hidden">
             <div class="absolute -top-40 -left-40 h-[26rem] w-[26rem] rounded-full bg-emerald-500/20 blur-[100px]"></div>
