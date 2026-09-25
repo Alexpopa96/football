@@ -69,8 +69,7 @@ const logout = () => router.post(route('logout'));
 
         <!-- App top bar: sticky, not fixed — iOS blurs a fixed header in the Home Screen app -->
         <header
-            class="sticky top-0 z-40 border-b border-white/10 bg-pitch-950 px-4"
-            style="padding-top: max(0.75rem, env(safe-area-inset-top)); padding-bottom: 0.75rem;"
+            class="app-topbar sticky top-0 z-40 border-b border-white/10 bg-pitch-950 px-4"
         >
             <div class="mx-auto flex max-w-3xl items-center justify-between">
                 <div class="flex items-center gap-2">

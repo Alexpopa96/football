@@ -29,3 +29,13 @@ html.is-standalone .pwa-statusbar {
     z-index: 50;
     pointer-events: none;
 }
+
+/* League top bar. In the Home Screen app iOS still blurs a ~38pt band below the status bar,
+   so the bar's content moves below it and only plain background sits in the band. */
+.app-topbar {
+    padding-top: max(0.75rem, env(safe-area-inset-top));
+    padding-bottom: 0.75rem;
+}
+html.is-standalone .app-topbar {
+    padding-top: calc(env(safe-area-inset-top) + 2.5rem);
+}
