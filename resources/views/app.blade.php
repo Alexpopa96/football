@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" @class(['canvas-dark' => str_starts_with($page['component'], 'League/') || $page['component'] === 'Auth/PlayerLogin'])>
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
@@ -15,6 +15,10 @@
             document.documentElement.classList.add('is-standalone');
         }
     </script>
+    {{-- Dark page canvas for the league pages: iOS tints the Home Screen app's top edge with it (white made it look washed out). --}}
+    <style>
+        html.canvas-dark, html.canvas-dark body { background-color: #05070d; }
+    </style>
     <link rel="apple-touch-icon" href="/icons/icon-192.png">
 
     <title inertia>{{ config('app.name', 'Laravel') }}</title>

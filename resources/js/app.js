@@ -2,7 +2,7 @@ import './bootstrap';
 import '../css/app.css';
 
 import { createApp, h } from 'vue';
-import { createInertiaApp } from '@inertiajs/vue3';
+import { createInertiaApp, router } from '@inertiajs/vue3';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { ZiggyVue } from '../../vendor/tightenco/ziggy';
 import Toast from "vue-toastification";
@@ -28,6 +28,12 @@ function hideAppLoader() {
         loader.addEventListener('transitionend', () => loader.remove(), { once: true });
     }, Math.max(0, APP_LOADER_MIN_MS - performance.now()));
 }
+
+// Keep html.canvas-dark (set by app.blade.php on first load) in sync when navigating between admin and league pages.
+router.on('navigate', (event) => {
+    const component = event.detail.page.component;
+    document.documentElement.classList.toggle('canvas-dark', component.startsWith('League/') || component === 'Auth/PlayerLogin');
+});
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
