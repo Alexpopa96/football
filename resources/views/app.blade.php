@@ -36,6 +36,30 @@
     @inertiaHead
 </head>
 <body class="font-sans antialiased">
+<div id="app-loader">
+    <img src="/icons/icon-192.png" alt="">
+    <div class="app-loader-spinner"></div>
+</div>
+<style>
+    #app-loader {
+        position: fixed; inset: 0; z-index: 9999;
+        display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 40px;
+        background: #05070d;
+        transition: opacity .35s ease-out;
+    }
+    #app-loader img { width: 110px; height: 110px; margin-top: -30px; }
+    #app-loader.is-hidden { opacity: 0; pointer-events: none; }
+    .app-loader-spinner {
+        width: 32px; height: 32px;
+        border: 3px solid rgba(255, 255, 255, .2); border-top-color: #fff; border-radius: 50%;
+        animation: app-loader-spin .8s linear infinite;
+    }
+    @keyframes app-loader-spin { to { transform: rotate(360deg); } }
+</style>
+<script>
+    // Never leave the loader up if the app fails to boot.
+    setTimeout(() => document.getElementById('app-loader')?.remove(), 10000);
+</script>
 {{--<script src="/assets/js/sidenav-burger.js" async></script>--}}
 {{--<script src="/assets/js/plugins/perfect-scrollbar.min.js" async></script>--}}
 {{--<script src="/assets/js/argon-dashboard-tailwind.js?v=1.0.1" async></script>--}}
