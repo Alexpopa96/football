@@ -126,9 +126,13 @@ const wheelEntry = ref(null);
 const wheelRef = ref(null);
 const wheelSpinning = ref(false);
 const wheelWinner = ref(null);
+// Snapshot of the pool when the modal opens, so the slices don't shift when the page reloads after landing
+// (the winner leaves the pool and, on a re-spin, the player's previous team returns to it).
+const wheelPool = ref([]);
 
 function openWheel(entry) {
     wheelEntry.value = entry;
+    wheelPool.value = [...remainingPoolTeams.value];
     wheelSpinning.value = false;
     wheelWinner.value = null;
 }
@@ -225,6 +229,9 @@ function generate() {
                     <span class="font-semibold text-white">{{ entry.team.short_name }}</span>
                     <CheckIcon class="h-5 w-5 text-emerald-400" />
                     <button @click="openManual(entry)" class="ml-2 text-xs text-slate-400 underline hover:text-white">schimbă</button>
+                    <button v-if="remainingPoolTeams.length >= 2" @click="openWheel(entry)" class="inline-flex items-center gap-1 text-xs text-emerald-400 underline hover:text-emerald-300">
+                        <SparklesIcon class="h-3.5 w-3.5" /> reînvârte
+                    </button>
                 </div>
                 <div v-else-if="autoAssigning && unassignedEntries.length === 1 && unassignedEntries[0].id === entry.id" class="flex items-center gap-2 text-sm text-emerald-400">
                     <SparklesIcon class="h-4 w-4 animate-pulse" /> Se asociază automat, e ultima echipă rămasă...
@@ -287,8 +294,10 @@ function generate() {
         <!-- Wheel modal -->
         <Modal :show="!!wheelEntry" :closeable="false" max-width="md">
             <div class="bg-pitch-900 p-6 text-center" v-if="wheelEntry">
-                <h2 class="mb-4 font-display text-lg font-bold text-white">Roata pentru {{ wheelEntry.user.name }}</h2>
-                <TeamWheel ref="wheelRef" :pool="remainingPoolTeams" :disabled="wheelSpinning" @spin-click="requestSpin" @landed="onLanded" />
+                <h2 class="mb-1 font-display text-lg font-bold text-white">Roata pentru {{ wheelEntry.user.name }}</h2>
+                <p v-if="wheelEntry.team" class="mb-4 text-xs text-slate-400">Reînvârtire — {{ wheelEntry.team.short_name }} nu mai e în roată.</p>
+                <div v-else class="mb-3"></div>
+                <TeamWheel ref="wheelRef" :pool="wheelPool" :disabled="wheelSpinning" @spin-click="requestSpin" @landed="onLanded" />
 
                 <transition
                     enter-active-class="transition duration-300 ease-out"
