@@ -3,7 +3,7 @@ import { ref, computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import LeagueLayout from '@/Layouts/LeagueLayout.vue';
 import TeamCrest from '@/Components/League/TeamCrest.vue';
-import { TrophyIcon, FireIcon, ShieldCheckIcon, SparklesIcon, FaceFrownIcon } from '@heroicons/vue/24/outline';
+import { TrophyIcon, FireIcon, ShieldCheckIcon, SparklesIcon, FaceFrownIcon, BanknotesIcon } from '@heroicons/vue/24/outline';
 
 const props = defineProps({
     can: Object,
@@ -12,6 +12,10 @@ const props = defineProps({
     teamStats: {
         type: Object,
         default: () => ({ players: [], cursed_teams: [], lucky_teams: [] }),
+    },
+    betting: {
+        type: Object,
+        default: () => ({ players: [], recent: [] }),
     },
 });
 
@@ -30,6 +34,33 @@ const metrics = [
 ];
 
 const activeMetric = ref('rating');
+
+const bettingMetrics = [
+    { key: 'net_profit', label: 'Profit' },
+    { key: 'bet_balance', label: 'Sold' },
+    { key: 'win_rate', label: '% câștigate' },
+    { key: 'bets_won', label: 'Pariuri câștigate' },
+    { key: 'biggest_win', label: 'Cel mai mare câștig' },
+    { key: 'total_staked', label: 'Total pariat' },
+];
+
+const activeBettingMetric = ref('net_profit');
+
+const rankedBettors = computed(() => {
+    return [...props.betting.players]
+        .sort((a, b) => b[activeBettingMetric.value] - a[activeBettingMetric.value] || b.net_profit - a.net_profit)
+        .map((player, index) => ({ ...player, position: index + 1 }));
+});
+
+const formatSigned = (value) => (value > 0 ? `+${value}` : `${value}`);
+
+const formatBettingMetric = (row, key) => {
+    if (key === 'net_profit') return `${formatSigned(row.net_profit)}p`;
+    if (key === 'win_rate') return `${row.win_rate}%`;
+    if (key === 'bets_won') return row.bets_won;
+
+    return `${row[key]}p`;
+};
 
 const rankedPlayers = computed(() => {
     return [...props.players]
@@ -155,6 +186,91 @@ const formatDate = (value) =>
                 </Link>
 
                 <p v-if="rankedPlayers.length === 0" class="py-6 text-center text-sm text-slate-400">Nicio statistică încă.</p>
+            </div>
+        </div>
+
+        <!-- Betting leaderboard -->
+        <div class="mb-8 rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur-xl">
+            <div class="mb-4 flex items-center gap-2">
+                <BanknotesIcon class="h-5 w-5 text-violet-400" />
+                <h2 class="font-display text-lg font-bold text-white">Clasament pariori</h2>
+            </div>
+
+            <div class="mb-4 flex flex-wrap gap-2">
+                <button
+                    v-for="metric in bettingMetrics"
+                    :key="metric.key"
+                    @click="activeBettingMetric = metric.key"
+                    class="rounded-xl px-3 py-1.5 text-xs font-semibold transition"
+                    :class="activeBettingMetric === metric.key ? 'bg-gradient-to-r from-violet-400 to-fuchsia-500 text-pitch-950' : 'bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white'"
+                >
+                    {{ metric.label }}
+                </button>
+            </div>
+
+            <p class="mb-4 text-xs text-slate-500">Profitul și procentele includ doar pariurile decontate.</p>
+
+            <div class="space-y-2">
+                <Link
+                    v-for="row in rankedBettors"
+                    :key="row.user_id"
+                    :href="route('league.players.show', row.user_id)"
+                    class="flex items-center gap-3 rounded-2xl px-3 py-2.5 transition hover:bg-white/[0.06]"
+                    :class="row.position === 1 ? 'bg-gradient-to-r from-violet-400/10 to-transparent ring-1 ring-violet-400/20' : 'bg-white/[0.03]'"
+                >
+                    <span class="w-4 text-center font-display font-bold" :class="row.position === 1 ? 'text-violet-300' : 'text-slate-400'">{{ row.position }}</span>
+                    <div
+                        class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-lg"
+                        :style="{ backgroundColor: (row.avatar_color || '#334155') + '33', border: `1px solid ${row.avatar_color || '#334155'}` }"
+                    >
+                        {{ row.avatar_emoji || '🎮' }}
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <p class="truncate text-sm font-semibold text-white">{{ row.name }}</p>
+                        <p class="truncate text-[11px] text-slate-500">
+                            {{ row.bets_won }}/{{ row.bets_settled }} câștigate &middot; profit
+                            <span :class="row.net_profit > 0 ? 'text-emerald-400' : row.net_profit < 0 ? 'text-rose-400' : ''">{{ formatSigned(row.net_profit) }}p</span>
+                            <template v-if="row.bets_pending > 0"> &middot; {{ row.bets_pending }} în așteptare</template>
+                        </p>
+                    </div>
+                    <span
+                        v-if="row.bankruptcies_count > 0"
+                        class="shrink-0 rounded-full bg-rose-500/15 px-2 py-0.5 text-[11px] font-semibold text-rose-400"
+                        :title="`A dat faliment de ${row.bankruptcies_count} ori`"
+                    >
+                        💀 ×{{ row.bankruptcies_count }}
+                    </span>
+                    <span class="shrink-0 font-display text-lg font-extrabold text-white">{{ formatBettingMetric(row, activeBettingMetric) }}</span>
+                </Link>
+
+                <p v-if="rankedBettors.length === 0" class="py-6 text-center text-sm text-slate-400">Niciun pariu încă.</p>
+            </div>
+
+            <h3 class="mb-3 mt-6 text-[11px] font-semibold uppercase tracking-wide text-slate-500">Ultimele pariuri decontate</h3>
+
+            <div class="space-y-2">
+                <div v-for="bet in betting.recent" :key="bet.id" class="flex items-center gap-3 rounded-2xl bg-white/[0.03] px-3 py-2.5">
+                    <div
+                        class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-base"
+                        :style="{ backgroundColor: (bet.avatar_color || '#334155') + '33', border: `1px solid ${bet.avatar_color || '#334155'}` }"
+                    >
+                        {{ bet.avatar_emoji || '🎮' }}
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <p class="truncate text-sm text-white">
+                            <span class="font-semibold">{{ bet.user_name }}</span>
+                            <span class="text-slate-400"> &middot; {{ bet.selection_label }}</span>
+                        </p>
+                        <p class="truncate text-[11px] text-slate-500">
+                            {{ bet.home_team }} {{ bet.home_score }} - {{ bet.away_score }} {{ bet.away_team }} &middot; {{ bet.stake }}p @ {{ Number(bet.odds).toFixed(2) }}x
+                        </p>
+                    </div>
+                    <span class="shrink-0 font-display text-base font-extrabold" :class="bet.net > 0 ? 'text-emerald-400' : 'text-rose-400'">
+                        {{ formatSigned(bet.net) }}p
+                    </span>
+                </div>
+
+                <p v-if="betting.recent.length === 0" class="py-6 text-center text-sm text-slate-400">Niciun pariu decontat încă.</p>
             </div>
         </div>
 

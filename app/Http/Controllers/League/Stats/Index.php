@@ -6,13 +6,14 @@ use App\Http\Controllers\Controller;
 use App\Models\Championship;
 use App\Models\Cup;
 use App\Models\FriendlyMatch;
+use App\Services\BetStatsCalculator;
 use App\Services\PlayerStatsCalculator;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class Index extends Controller
 {
-    public function __invoke(PlayerStatsCalculator $calculator)
+    public function __invoke(PlayerStatsCalculator $calculator, BetStatsCalculator $betStats)
     {
         $championshipMatches = Championship::with([
             'matches.homeEntry.user',
@@ -89,6 +90,10 @@ class Index extends Controller
             'players' => $calculator->leaderboard(),
             'matches' => $matches,
             'teamStats' => $calculator->teamStats(),
+            'betting' => [
+                'players' => $betStats->leaderboard(),
+                'recent' => $betStats->recentBets(),
+            ],
         ]);
     }
 }
