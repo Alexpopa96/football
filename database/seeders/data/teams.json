@@ -1244,5 +1244,348 @@
     "country": "Scoția",
     "league": "Scottish Premiership",
     "crest_url": "https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/Scotland%20-%20Scottish%20Premiership/St.%20Mirren%20FC.png"
+  },
+  {
+    "name": "România",
+    "short_name": "România",
+    "country": "România",
+    "league": "Echipe Naționale",
+    "crest_url": "https://flagcdn.com/w320/ro.png"
+  },
+  {
+    "name": "Franța",
+    "short_name": "Franța",
+    "country": "Franța",
+    "league": "Echipe Naționale",
+    "crest_url": "https://flagcdn.com/w320/fr.png"
+  },
+  {
+    "name": "Spania",
+    "short_name": "Spania",
+    "country": "Spania",
+    "league": "Echipe Naționale",
+    "crest_url": "https://flagcdn.com/w320/es.png"
+  },
+  {
+    "name": "Germania",
+    "short_name": "Germania",
+    "country": "Germania",
+    "league": "Echipe Naționale",
+    "crest_url": "https://flagcdn.com/w320/de.png"
+  },
+  {
+    "name": "Anglia",
+    "short_name": "Anglia",
+    "country": "Anglia",
+    "league": "Echipe Naționale",
+    "crest_url": "https://flagcdn.com/w320/gb-eng.png"
+  },
+  {
+    "name": "Italia",
+    "short_name": "Italia",
+    "country": "Italia",
+    "league": "Echipe Naționale",
+    "crest_url": "https://flagcdn.com/w320/it.png"
+  },
+  {
+    "name": "Portugalia",
+    "short_name": "Portugalia",
+    "country": "Portugalia",
+    "league": "Echipe Naționale",
+    "crest_url": "https://flagcdn.com/w320/pt.png"
+  },
+  {
+    "name": "Olanda",
+    "short_name": "Olanda",
+    "country": "Olanda",
+    "league": "Echipe Naționale",
+    "crest_url": "https://flagcdn.com/w320/nl.png"
+  },
+  {
+    "name": "Belgia",
+    "short_name": "Belgia",
+    "country": "Belgia",
+    "league": "Echipe Naționale",
+    "crest_url": "https://flagcdn.com/w320/be.png"
+  },
+  {
+    "name": "Croația",
+    "short_name": "Croația",
+    "country": "Croația",
+    "league": "Echipe Naționale",
+    "crest_url": "https://flagcdn.com/w320/hr.png"
+  },
+  {
+    "name": "Elveția",
+    "short_name": "Elveția",
+    "country": "Elveția",
+    "league": "Echipe Naționale",
+    "crest_url": "https://flagcdn.com/w320/ch.png"
+  },
+  {
+    "name": "Danemarca",
+    "short_name": "Danemarca",
+    "country": "Danemarca",
+    "league": "Echipe Naționale",
+    "crest_url": "https://flagcdn.com/w320/dk.png"
+  },
+  {
+    "name": "Austria",
+    "short_name": "Austria",
+    "country": "Austria",
+    "league": "Echipe Naționale",
+    "crest_url": "https://flagcdn.com/w320/at.png"
+  },
+  {
+    "name": "Polonia",
+    "short_name": "Polonia",
+    "country": "Polonia",
+    "league": "Echipe Naționale",
+    "crest_url": "https://flagcdn.com/w320/pl.png"
+  },
+  {
+    "name": "Serbia",
+    "short_name": "Serbia",
+    "country": "Serbia",
+    "league": "Echipe Naționale",
+    "crest_url": "https://flagcdn.com/w320/rs.png"
+  },
+  {
+    "name": "Turcia",
+    "short_name": "Turcia",
+    "country": "Turcia",
+    "league": "Echipe Naționale",
+    "crest_url": "https://flagcdn.com/w320/tr.png"
+  },
+  {
+    "name": "Ucraina",
+    "short_name": "Ucraina",
+    "country": "Ucraina",
+    "league": "Echipe Naționale",
+    "crest_url": "https://flagcdn.com/w320/ua.png"
+  },
+  {
+    "name": "Scoția",
+    "short_name": "Scoția",
+    "country": "Scoția",
+    "league": "Echipe Naționale",
+    "crest_url": "https://flagcdn.com/w320/gb-sct.png"
+  },
+  {
+    "name": "Țara Galilor",
+    "short_name": "Țara Galilor",
+    "country": "Țara Galilor",
+    "league": "Echipe Naționale",
+    "crest_url": "https://flagcdn.com/w320/gb-wls.png"
+  },
+  {
+    "name": "Suedia",
+    "short_name": "Suedia",
+    "country": "Suedia",
+    "league": "Echipe Naționale",
+    "crest_url": "https://flagcdn.com/w320/se.png"
+  },
+  {
+    "name": "Norvegia",
+    "short_name": "Norvegia",
+    "country": "Norvegia",
+    "league": "Echipe Naționale",
+    "crest_url": "https://flagcdn.com/w320/no.png"
+  },
+  {
+    "name": "Cehia",
+    "short_name": "Cehia",
+    "country": "Cehia",
+    "league": "Echipe Naționale",
+    "crest_url": "https://flagcdn.com/w320/cz.png"
+  },
+  {
+    "name": "Ungaria",
+    "short_name": "Ungaria",
+    "country": "Ungaria",
+    "league": "Echipe Naționale",
+    "crest_url": "https://flagcdn.com/w320/hu.png"
+  },
+  {
+    "name": "Grecia",
+    "short_name": "Grecia",
+    "country": "Grecia",
+    "league": "Echipe Naționale",
+    "crest_url": "https://flagcdn.com/w320/gr.png"
+  },
+  {
+    "name": "Argentina",
+    "short_name": "Argentina",
+    "country": "Argentina",
+    "league": "Echipe Naționale",
+    "crest_url": "https://flagcdn.com/w320/ar.png"
+  },
+  {
+    "name": "Brazilia",
+    "short_name": "Brazilia",
+    "country": "Brazilia",
+    "league": "Echipe Naționale",
+    "crest_url": "https://flagcdn.com/w320/br.png"
+  },
+  {
+    "name": "Uruguay",
+    "short_name": "Uruguay",
+    "country": "Uruguay",
+    "league": "Echipe Naționale",
+    "crest_url": "https://flagcdn.com/w320/uy.png"
+  },
+  {
+    "name": "Columbia",
+    "short_name": "Columbia",
+    "country": "Columbia",
+    "league": "Echipe Naționale",
+    "crest_url": "https://flagcdn.com/w320/co.png"
+  },
+  {
+    "name": "Chile",
+    "short_name": "Chile",
+    "country": "Chile",
+    "league": "Echipe Naționale",
+    "crest_url": "https://flagcdn.com/w320/cl.png"
+  },
+  {
+    "name": "Ecuador",
+    "short_name": "Ecuador",
+    "country": "Ecuador",
+    "league": "Echipe Naționale",
+    "crest_url": "https://flagcdn.com/w320/ec.png"
+  },
+  {
+    "name": "Peru",
+    "short_name": "Peru",
+    "country": "Peru",
+    "league": "Echipe Naționale",
+    "crest_url": "https://flagcdn.com/w320/pe.png"
+  },
+  {
+    "name": "Paraguay",
+    "short_name": "Paraguay",
+    "country": "Paraguay",
+    "league": "Echipe Naționale",
+    "crest_url": "https://flagcdn.com/w320/py.png"
+  },
+  {
+    "name": "Mexic",
+    "short_name": "Mexic",
+    "country": "Mexic",
+    "league": "Echipe Naționale",
+    "crest_url": "https://flagcdn.com/w320/mx.png"
+  },
+  {
+    "name": "SUA",
+    "short_name": "SUA",
+    "country": "SUA",
+    "league": "Echipe Naționale",
+    "crest_url": "https://flagcdn.com/w320/us.png"
+  },
+  {
+    "name": "Canada",
+    "short_name": "Canada",
+    "country": "Canada",
+    "league": "Echipe Naționale",
+    "crest_url": "https://flagcdn.com/w320/ca.png"
+  },
+  {
+    "name": "Maroc",
+    "short_name": "Maroc",
+    "country": "Maroc",
+    "league": "Echipe Naționale",
+    "crest_url": "https://flagcdn.com/w320/ma.png"
+  },
+  {
+    "name": "Senegal",
+    "short_name": "Senegal",
+    "country": "Senegal",
+    "league": "Echipe Naționale",
+    "crest_url": "https://flagcdn.com/w320/sn.png"
+  },
+  {
+    "name": "Nigeria",
+    "short_name": "Nigeria",
+    "country": "Nigeria",
+    "league": "Echipe Naționale",
+    "crest_url": "https://flagcdn.com/w320/ng.png"
+  },
+  {
+    "name": "Egipt",
+    "short_name": "Egipt",
+    "country": "Egipt",
+    "league": "Echipe Naționale",
+    "crest_url": "https://flagcdn.com/w320/eg.png"
+  },
+  {
+    "name": "Coasta de Fildeș",
+    "short_name": "Coasta de Fildeș",
+    "country": "Coasta de Fildeș",
+    "league": "Echipe Naționale",
+    "crest_url": "https://flagcdn.com/w320/ci.png"
+  },
+  {
+    "name": "Camerun",
+    "short_name": "Camerun",
+    "country": "Camerun",
+    "league": "Echipe Naționale",
+    "crest_url": "https://flagcdn.com/w320/cm.png"
+  },
+  {
+    "name": "Ghana",
+    "short_name": "Ghana",
+    "country": "Ghana",
+    "league": "Echipe Naționale",
+    "crest_url": "https://flagcdn.com/w320/gh.png"
+  },
+  {
+    "name": "Algeria",
+    "short_name": "Algeria",
+    "country": "Algeria",
+    "league": "Echipe Naționale",
+    "crest_url": "https://flagcdn.com/w320/dz.png"
+  },
+  {
+    "name": "Tunisia",
+    "short_name": "Tunisia",
+    "country": "Tunisia",
+    "league": "Echipe Naționale",
+    "crest_url": "https://flagcdn.com/w320/tn.png"
+  },
+  {
+    "name": "Japonia",
+    "short_name": "Japonia",
+    "country": "Japonia",
+    "league": "Echipe Naționale",
+    "crest_url": "https://flagcdn.com/w320/jp.png"
+  },
+  {
+    "name": "Coreea de Sud",
+    "short_name": "Coreea de Sud",
+    "country": "Coreea de Sud",
+    "league": "Echipe Naționale",
+    "crest_url": "https://flagcdn.com/w320/kr.png"
+  },
+  {
+    "name": "Arabia Saudită",
+    "short_name": "Arabia Saudită",
+    "country": "Arabia Saudită",
+    "league": "Echipe Naționale",
+    "crest_url": "https://flagcdn.com/w320/sa.png"
+  },
+  {
+    "name": "Iran",
+    "short_name": "Iran",
+    "country": "Iran",
+    "league": "Echipe Naționale",
+    "crest_url": "https://flagcdn.com/w320/ir.png"
+  },
+  {
+    "name": "Australia",
+    "short_name": "Australia",
+    "country": "Australia",
+    "league": "Echipe Naționale",
+    "crest_url": "https://flagcdn.com/w320/au.png"
   }
 ]
