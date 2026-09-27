@@ -30,11 +30,44 @@ const form = useForm({
     crest_url: '',
 });
 
+const NEW_LEAGUE = '__new__';
+const leagueChoice = ref('');
+
+watch(leagueChoice, (value) => {
+    form.league = value === NEW_LEAGUE ? '' : value;
+});
+
+const crestResults = ref(null);
+const crestSearching = ref(false);
+
+async function searchCrest() {
+    const name = (form.name || form.short_name).trim();
+    if (!name) return;
+
+    crestSearching.value = true;
+    try {
+        const { data } = await window.axios.get('/league/teams/search-crest', { params: { name } });
+        crestResults.value = data.results;
+    } catch {
+        crestResults.value = [];
+    } finally {
+        crestSearching.value = false;
+    }
+}
+
+function pickCrest(result) {
+    form.crest_url = result.crest_url;
+    crestResults.value = null;
+}
+
 function submit() {
+    form.transform((data) => ({ ...data, league: data.league.trim() || null }));
     form.post('/league/teams/store', {
         preserveScroll: true,
         onSuccess: () => {
             form.reset();
+            leagueChoice.value = '';
+            crestResults.value = null;
             showAdd.value = false;
         },
     });
@@ -122,13 +155,40 @@ function toggleActive(team) {
                         </div>
                         <div>
                             <label class="text-xs font-medium text-slate-300">Ligă</label>
-                            <input v-model="form.league" type="text" class="mt-1 w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:border-emerald-400 focus:ring-emerald-400" />
+                            <select v-model="leagueChoice" class="mt-1 w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-emerald-400 focus:ring-emerald-400">
+                                <option value="" class="bg-pitch-900">Fără ligă</option>
+                                <option v-for="l in leagues" :key="l" :value="l" class="bg-pitch-900">{{ l }}</option>
+                                <option :value="NEW_LEAGUE" class="bg-pitch-900">+ Ligă nouă</option>
+                            </select>
+                            <input v-if="leagueChoice === NEW_LEAGUE" v-model="form.league" type="text" placeholder="Numele ligii" class="mt-2 w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:border-emerald-400 focus:ring-emerald-400" />
+                            <p v-if="form.errors.league" class="mt-1 text-xs text-rose-400">{{ form.errors.league }}</p>
                         </div>
                     </div>
                     <div>
                         <label class="text-xs font-medium text-slate-300">URL siglă</label>
-                        <input v-model="form.crest_url" type="text" placeholder="https://..." class="mt-1 w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:border-emerald-400 focus:ring-emerald-400" />
+                        <div class="mt-1 flex items-center gap-2">
+                            <img v-if="form.crest_url" :src="form.crest_url" alt="" class="h-9 w-9 shrink-0 object-contain" />
+                            <input v-model="form.crest_url" type="text" placeholder="https://..." class="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:border-emerald-400 focus:ring-emerald-400" />
+                            <button type="button" @click="searchCrest" :disabled="crestSearching || !(form.name || form.short_name)" class="shrink-0 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white hover:bg-white/10 disabled:opacity-50">
+                                {{ crestSearching ? 'Caut...' : 'Caută automat' }}
+                            </button>
+                        </div>
                         <p v-if="form.errors.crest_url" class="mt-1 text-xs text-rose-400">{{ form.errors.crest_url }}</p>
+                        <div v-if="crestResults" class="mt-2">
+                            <p v-if="crestResults.length === 0" class="text-xs text-slate-500">Nu am găsit nicio siglă. Încearcă alt nume.</p>
+                            <div v-else class="grid grid-cols-4 gap-2">
+                                <button
+                                    v-for="result in crestResults"
+                                    :key="result.crest_url"
+                                    type="button"
+                                    @click="pickCrest(result)"
+                                    class="flex flex-col items-center gap-1 rounded-xl border border-white/10 bg-white/5 p-2 text-center hover:border-emerald-400"
+                                >
+                                    <img :src="result.crest_url" alt="" class="h-10 w-10 object-contain" />
+                                    <span class="line-clamp-2 text-[10px] text-slate-300">{{ result.name }}</span>
+                                </button>
+                            </div>
+                        </div>
                     </div>
                     <div class="flex justify-end gap-3 pt-2">
                         <button type="button" @click="showAdd = false" class="rounded-xl px-4 py-2 text-sm text-slate-400 hover:text-white">Anulează</button>

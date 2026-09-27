@@ -44,6 +44,7 @@ use App\Http\Controllers\League\Settings\Show as SettingsShow;
 use App\Http\Controllers\League\Settings\UpdatePin as SettingsUpdatePin;
 use App\Http\Controllers\League\Stats\Index as StatsIndex;
 use App\Http\Controllers\League\Teams\Index as TeamsIndex;
+use App\Http\Controllers\League\Teams\SearchCrest as TeamsSearchCrest;
 use App\Http\Controllers\League\Teams\Store as TeamsStore;
 use App\Http\Controllers\League\Teams\Update as TeamsUpdate;
 use Illuminate\Support\Facades\Route;
@@ -59,6 +60,7 @@ Route::middleware(['auth'])
 
         Route::prefix('teams')->as('teams.')->group(function () {
             Route::get('', TeamsIndex::class)->name('')->middleware('can:view league');
+            Route::get('search-crest', TeamsSearchCrest::class)->name('search-crest')->middleware('can:manage league');
             Route::post('store', TeamsStore::class)->name('store')->middleware('can:manage league');
             Route::put('{team}/update', TeamsUpdate::class)->name('update')->middleware('can:manage league');
         });

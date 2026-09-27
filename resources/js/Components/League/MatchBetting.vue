@@ -11,6 +11,7 @@ const props = defineProps({
 
 const CORRECT_SCORE_MAX_GOALS = 6;
 const MATCH_RESULT_ODDS = 2.0;
+const MATCH_RESULT_DRAW_ODDS = 4.0;
 const CORRECT_SCORE_ODDS = 10.0;
 const HANDICAP_ODDS_BY_MARGIN = { 2: 1.5, 3: 2.5, 4: 3.5 };
 
@@ -40,7 +41,7 @@ const MARKETS = [
         label: '1X2',
         options: [
             { value: 'home', label: 'Gazdă', odds: MATCH_RESULT_ODDS },
-            { value: 'draw', label: 'Egal', odds: MATCH_RESULT_ODDS },
+            { value: 'draw', label: 'Egal', odds: MATCH_RESULT_DRAW_ODDS },
             { value: 'away', label: 'Oaspete', odds: MATCH_RESULT_ODDS },
         ],
     },
@@ -176,7 +177,7 @@ const pointsClass = (points) => (points > 0 ? 'bg-emerald-500/20 text-emerald-40
                     <span class="rounded-full bg-white/5 px-2.5 py-1 text-xs font-semibold text-white">Sold: {{ availableForStake }}p</span>
                 </div>
                 <p class="mb-4 text-xs text-slate-400">
-                    Un singur pariu activ pe acest meci &middot; 1X2 {{ MATCH_RESULT_ODDS.toFixed(2) }}x, scor exact {{ CORRECT_SCORE_ODDS.toFixed(2) }}x, diferență de goluri
+                    Un singur pariu activ pe acest meci &middot; 1X2 {{ MATCH_RESULT_ODDS.toFixed(2) }}x (egal {{ MATCH_RESULT_DRAW_ODDS.toFixed(2) }}x), scor exact {{ CORRECT_SCORE_ODDS.toFixed(2) }}x, diferență de goluri
                     1.50x&ndash;3.50x. Dacă pierzi, îți pierzi miza.
                 </p>
 
@@ -196,7 +197,7 @@ const pointsClass = (points) => (points > 0 ? 'bg-emerald-500/20 text-emerald-40
                                         : 'bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white'
                                 "
                             >
-                                {{ opt.label }}
+                                {{ opt.label }} <span class="text-[10px] text-slate-500">({{ opt.odds.toFixed(2) }}x)</span>
                             </button>
                         </div>
                     </div>
@@ -234,7 +235,7 @@ const pointsClass = (points) => (points > 0 ? 'bg-emerald-500/20 text-emerald-40
                     </div>
 
                     <div>
-                        <p class="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-500">Diferență de goluri</p>
+                        <p class="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-500">Diferență de goluri (cel puțin)</p>
                         <div class="flex flex-wrap gap-1.5">
                             <button
                                 v-for="opt in handicapOptions"

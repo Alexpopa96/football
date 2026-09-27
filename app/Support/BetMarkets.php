@@ -21,6 +21,8 @@ class BetMarkets
         4 => 3.5,
     ];
 
+    public const MATCH_RESULT_DRAW_ODDS = 4.0;
+
     public const ODDS_BY_MARKET = [
         self::MATCH_RESULT => 2.0,
         self::CORRECT_SCORE => 10.0,
@@ -80,6 +82,10 @@ class BetMarkets
             return self::ODDS_BY_HANDICAP_MARGIN[$margin];
         }
 
+        if ($market === self::MATCH_RESULT && $selection === 'draw') {
+            return self::MATCH_RESULT_DRAW_ODDS;
+        }
+
         return self::ODDS_BY_MARKET[$market];
     }
 
@@ -100,8 +106,8 @@ class BetMarkets
     }
 
     /**
-     * A handicap selection like "home_by_3" wins only when that side wins by exactly
-     * that goal difference, matching the exact-outcome convention every other market uses.
+     * A handicap selection like "home_by_3" wins when that side wins by at least
+     * that goal difference (3, 4, 5, ...).
      */
     private static function handicapWins(string $selection, int $homeScore, int $awayScore): bool
     {
@@ -109,7 +115,7 @@ class BetMarkets
 
         $actualDifference = $side === 'home' ? $homeScore - $awayScore : $awayScore - $homeScore;
 
-        return $actualDifference === $margin;
+        return $actualDifference >= $margin;
     }
 
     private static function parseHandicapSelection(string $selection): array
